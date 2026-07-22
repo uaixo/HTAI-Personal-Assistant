@@ -1,0 +1,53 @@
+# NousAI brand skin — Phase 1 of the NousAI UI customization plan.
+# Install location: ~/.hermes/skins/nousai.yaml (Linux/macOS)
+#                   %LOCALAPPDATA%\hermes\skins\nousai.yaml (Windows)
+# Activate with `/skin nousai` at runtime, or `display.skin: nousai` in config.yaml.
+# All fields are optional; anything missing inherits from the built-in default skin.
+name: nousai
+description: NousAI brand skin — electric indigo
+colors:
+  banner_border: "#6366F1"
+  banner_title: "#A5B4FC"
+  banner_accent: "#22D3EE"
+  banner_dim: "#64748B"
+  banner_text: "#E2E8F0"
+  ui_accent: "#22D3EE"
+  ui_label: "#818CF8"
+  ui_ok: "#34D399"
+  ui_error: "#F87171"
+  ui_warn: "#FBBF24"
+  ui_tool: "#22D3EE"
+  ui_thinking: "#818CF8"
+  prompt: "#E2E8F0"
+  input_rule: "#6366F1"
+  response_border: "#818CF8"
+  status_bar_bg: "#0B0E1A"
+  status_bar_text: "#94A3B8"
+  status_bar_strong: "#A5B4FC"
+  status_bar_dim: "#475569"
+  status_bar_good: "#34D399"
+  status_bar_warn: "#FBBF24"
+  status_bar_bad: "#FB923C"
+  status_bar_critical: "#F87171"
+  session_label: "#818CF8"
+  session_border: "#475569"
+  completion_menu_bg: "#0B0E1A"
+  completion_menu_current_bg: "#312E81"
+  completion_menu_meta_bg: "#0B0E1A"
+  completion_menu_meta_current_bg: "#312E81"
+  selection_bg: "#312E81"
+  shell_dollar: "#22D3EE"
+  voice_status_bg: "#0B0E1A"
+spinner:
+  waiting_faces: ["(◕‿◕)", "(⊙_⊙)"]
+  thinking_faces: ["(⌬)", "(◈)"]
+  thinking_verbs: ["synthesizing", "reasoning", "converging", "distilling"]
+  wings:
+    - ["⟨◈", "◈⟩"]
+branding:
+  agent_name: "NousAI"
+  welcome: "NousAI online. What are we building?"
+  goodbye: "NousAI signing off ◈"
+  response_label: " ◈ NousAI "
+  prompt_symbol: "◈"
+  help_header: "◈ NousAI Commands"
