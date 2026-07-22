@@ -32,15 +32,39 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
 ## Upstream-sync safety rules
 
 - Keep `NousAI-Assistant` conflict-free against upstream: **add-only files**;
-  do not modify upstream-owned files. (UI code changes are Phase 2+ of the
-  branding plan and need an explicit user request.)
+  do not modify upstream-owned files — EXCEPT the Phase 2 brand-pack carve-out
+  below (user-approved 2026-07-22). Widening that carve-out needs an explicit
+  user request.
+- **Phase 2 carve-out** — these upstream-owned files intentionally diverge and
+  may conflict on upstream syncs; resolve by keeping upstream's changes and
+  re-asserting the NousAI brand values:
+  - `assets/banner.png` (NousAI banner)
+  - `apps/desktop/assets/icon.{png,ico,icns}` (NousAI icons)
+  - `apps/desktop/package.json` (productName/executableName `NousAI`,
+    appId `ai.nous.desktop`, artifactName `NousAI-…`; `hermes://` protocol
+    scheme and npm `name` stay upstream)
+  - `apps/desktop/index.html` (`<title>NousAI — Hermes</title>` — must keep
+    the word `Hermes`: `e2e/boot.spec.ts` asserts it)
+  - `apps/desktop/src/themes/presets.ts` (`nousaiTheme`, BUILTIN_THEMES entry,
+    `DEFAULT_SKIN_NAME = 'nousai'`)
+  - `web/src/themes/presets.ts` (`nousaiTheme` + BUILTIN_THEMES entry)
+  - `hermes_cli/web_server.py` (one `nousai` row in `_BUILTIN_DASHBOARD_THEMES`)
+- Deliberately NOT forked: `ui-tui/` default theme/content (runtime skin
+  already themes the TUI; upstream tests hardcode Hermes brand there) and the
+  packaged-app e2e fixtures (expect `Hermes` binary names — they skip when no
+  packaged build exists).
 - If the `check-attribution` CI job flags unmapped upstream author emails, map
   them with `python3 scripts/add_contributor.py <email> <github-login>` —
   verify the login from the commit's linked author via the GitHub API, don't
   guess.
 
-## NousAI branding (Phase 1 — done)
+## NousAI branding (Phase 1 + 2 — done)
 
 `nousai-branding/` holds the config-only rebrand: skin (`skins/nousai.yaml`),
 persona (`SOUL.md`), installers for Linux/macOS and Windows. Runtime files
 install into the Hermes home directory, not the repo. See its README.
+
+Phase 2 (brand pack) lives in the carve-out files listed above: NousAI
+banner/icons, desktop app identity, and first-class `nousai` desktop/web
+theme presets (desktop default; web default set via `dashboard.theme` in
+config, which the installers write).
