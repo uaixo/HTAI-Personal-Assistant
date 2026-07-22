@@ -7,6 +7,12 @@
   evidence is missing, or when multiple reasonable interpretations exist,
   stop and ask the user (AskUserQuestion) instead of picking one silently.
   Verify claims against the actual repo/CI/API state before acting on them.
+- Autonomy boundary, so the rule above doesn't over-trigger: ASK before
+  anything destructive, irreversible, outward-facing, or scope-changing, and
+  whenever requirements genuinely allow more than one reading. PROCEED
+  without asking for reversible mechanical steps that follow directly from
+  the agreed task — running checks/tests, syncing the session branch, and
+  the recorded PR → CI → squash-merge flow.
 
 ## Branches
 
