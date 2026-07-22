@@ -97,6 +97,44 @@ export const nousTheme: DesktopTheme = {
   }
 }
 
+/** NousAI brand — electric indigo on deep ink. Matches the CLI nousai skin. */
+export const nousaiTheme: DesktopTheme = {
+  name: 'nousai',
+  label: 'NousAI',
+  description: 'Electric indigo on deep ink — the NousAI look',
+  colors: {
+    background: '#0B0E1A',
+    foreground: '#E2E8F0',
+    card: '#111527',
+    cardForeground: '#E2E8F0',
+    muted: '#1A2036',
+    mutedForeground: '#8A93B2',
+    popover: '#141930',
+    popoverForeground: '#E2E8F0',
+    primary: '#818CF8',
+    primaryForeground: '#0B0E1A',
+    secondary: '#1E2543',
+    secondaryForeground: '#C7D2FE',
+    accent: '#1B2140',
+    accentForeground: '#A5B4FC',
+    border: '#252C4A',
+    input: '#252C4A',
+    ring: '#6366F1',
+    midground: '#6366F1',
+    composerRing: '#22D3EE',
+    destructive: '#E5484D',
+    destructiveForeground: '#FEF2F2',
+    sidebarBackground: '#080B14',
+    sidebarBorder: '#1A2036',
+    userBubble: '#161C33',
+    userBubbleBorder: '#2A3357'
+  },
+  typography: {
+    fontMono: `"JetBrains Mono", ${SYSTEM_MONO}`,
+    fontUrl: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap'
+  }
+}
+
 /** Deep blue-violet with cool accents. Matches the dashboard midnight theme. */
 export const midnightTheme: DesktopTheme = {
   name: 'midnight',
@@ -278,6 +316,7 @@ export const slateTheme: DesktopTheme = {
 }
 
 export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
+  nousai: nousaiTheme,
   nous: nousTheme,
   midnight: midnightTheme,
   ember: emberTheme,
@@ -289,4 +328,4 @@ export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
 export const BUILTIN_THEME_LIST = Object.values(BUILTIN_THEMES)
 
 /** Skin used when nothing is persisted or the persisted name is retired. */
-export const DEFAULT_SKIN_NAME = 'nous'
+export const DEFAULT_SKIN_NAME = 'nousai'

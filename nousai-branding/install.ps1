@@ -26,12 +26,12 @@ Write-Host "  OK persona -> $Soul"
 
 $Config = Join-Path $HermesDir "config.yaml"
 if (-not (Test-Path $Config)) {
-    "display:`n  skin: nousai`n" | Set-Content -Encoding UTF8 $Config
-    Write-Host "  OK config  -> $Config (created with display.skin: nousai)"
+    "display:`n  skin: nousai`ndashboard:`n  theme: nousai`n" | Set-Content -Encoding UTF8 $Config
+    Write-Host "  OK config  -> $Config (display.skin + dashboard.theme: nousai)"
 } else {
     Write-Host "  config.yaml already exists - left untouched."
     Write-Host "    Activate the skin by running '/skin nousai' inside Hermes (persists automatically),"
-    Write-Host "    or set 'display.skin: nousai' in $Config yourself."
+    Write-Host "    or set 'display.skin: nousai' and 'dashboard.theme: nousai' in $Config yourself."
 }
 
 Write-Host "Done. Start hermes and the banner should greet you as NousAI."

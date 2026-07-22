@@ -54,6 +54,31 @@ export const defaultTheme: DashboardTheme = {
   terminalBackground: "#000000",
 };
 
+/** NousAI brand — electric indigo on deep ink. Matches the CLI nousai skin. */
+export const nousaiTheme: DashboardTheme = {
+  name: "nousai",
+  label: "NousAI",
+  description: "Electric indigo on deep ink — the NousAI look",
+  palette: {
+    background: { hex: "#0B0E1A", alpha: 1 },
+    midground: { hex: "#A5B4FC", alpha: 1 },
+    foreground: { hex: "#ffffff", alpha: 0 },
+    warmGlow: "rgba(99, 102, 241, 0.32)",
+    noiseOpacity: 0.8,
+  },
+  typography: {
+    ...DEFAULT_TYPOGRAPHY,
+    fontMono: `"JetBrains Mono", ${SYSTEM_MONO}`,
+    fontUrl:
+      "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap",
+  },
+  layout: {
+    ...DEFAULT_LAYOUT,
+    radius: "0.75rem",
+  },
+  terminalBackground: "#05060D",
+};
+
 export const midnightTheme: DashboardTheme = {
   name: "midnight",
   label: "Midnight",
@@ -231,6 +256,7 @@ export const defaultLargeTheme: DashboardTheme = {
 export const BUILTIN_THEMES: Record<string, DashboardTheme> = {
   default: defaultTheme,
   "default-large": defaultLargeTheme,
+  nousai: nousaiTheme,
   "nous-blue": nousBlueTheme,
   midnight: midnightTheme,
   ember: emberTheme,
