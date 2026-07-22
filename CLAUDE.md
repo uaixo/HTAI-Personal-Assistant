@@ -13,11 +13,17 @@
 
 Land session work fully automatically — the user does not want to touch PRs:
 
-1. Develop on a session feature branch cut from `NousAI-Assistant`.
-2. Push, open a PR **based on `NousAI-Assistant`** (draft is fine).
-3. Watch CI (`ci.yml` runs on `pull_request` only — direct pushes to
+1. **Sync first — before any code change**, bring the session branch up to
+   the current remote tip: `git fetch origin NousAI-Assistant`, then
+   `git checkout -B <session-branch> origin/NousAI-Assistant` when the branch
+   carries no unmerged commits (the normal case — after its PR merges, restart
+   it the same way), or `git rebase origin/NousAI-Assistant` when it holds
+   unmerged work. Never start work from a stale tip.
+2. Develop on that session feature branch cut from `NousAI-Assistant`.
+3. Push, open a PR **based on `NousAI-Assistant`** (draft is fine).
+4. Watch CI (`ci.yml` runs on `pull_request` only — direct pushes to
    `NousAI-Assistant` run no CI, which is why the PR step exists).
-4. When green: mark ready and **squash-merge without asking**. Only pause for
+5. When green: mark ready and **squash-merge without asking**. Only pause for
    user input if CI reveals a real problem or the change is risky/destructive.
 
 If repo Settings → Pull Requests → "Allow auto-merge" gets enabled, arm
