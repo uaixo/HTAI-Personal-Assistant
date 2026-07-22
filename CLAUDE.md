@@ -1,5 +1,13 @@
 # Claude session notes — uaixo/HTAI-Personal-Assistant
 
+## Standing user instructions (apply to every session and every task)
+
+- "Please do not make any assumptions. Please ask any questions when things
+  are not clear or certain." — When a decision point is ambiguous, when
+  evidence is missing, or when multiple reasonable interpretations exist,
+  stop and ask the user (AskUserQuestion) instead of picking one silently.
+  Verify claims against the actual repo/CI/API state before acting on them.
+
 ## Branches
 
 - **`NousAI-Assistant` is the active development line**: a snapshot of upstream
