@@ -34,6 +34,15 @@ const DESKTOP_ROOT = path.resolve(import.meta.dirname, '..')
 const REPO_ROOT = path.resolve(DESKTOP_ROOT, '..', '..')
 const RELEASE_ROOT = path.join(DESKTOP_ROOT, 'release')
 
+// Packaged-app names derive from package.json so the fixtures track
+// productName / executableName instead of pinning a hardcoded brand.
+const DESKTOP_PACKAGE = JSON.parse(fs.readFileSync(path.join(DESKTOP_ROOT, 'package.json'), 'utf8')) as {
+  productName?: string
+  build?: { productName?: string; executableName?: string }
+}
+const PRODUCT_NAME = DESKTOP_PACKAGE.build?.productName ?? DESKTOP_PACKAGE.productName ?? 'Hermes'
+const EXECUTABLE_NAME = DESKTOP_PACKAGE.build?.executableName ?? PRODUCT_NAME
+
 // ─── Credential stripping (matches launch.spec.ts) ──────────────────────
 
 const CREDENTIAL_SUFFIXES: string[] = [
@@ -460,16 +469,16 @@ providers:
  */
 function resolvePackagedBinaryPath(): string {
   if (process.platform === 'win32') {
-    return path.join(RELEASE_ROOT, 'win-unpacked', 'Hermes.exe')
+    return path.join(RELEASE_ROOT, 'win-unpacked', `${EXECUTABLE_NAME}.exe`)
   }
 
   if (process.platform === 'darwin') {
     const arch = process.arch === 'arm64' ? 'arm64' : 'x64'
 
-    return path.join(RELEASE_ROOT, `mac-${arch}`, 'Hermes.app', 'Contents', 'MacOS', 'Hermes')
+    return path.join(RELEASE_ROOT, `mac-${arch}`, `${PRODUCT_NAME}.app`, 'Contents', 'MacOS', EXECUTABLE_NAME)
   }
 
-  return path.join(RELEASE_ROOT, 'linux-unpacked', 'hermes')
+  return path.join(RELEASE_ROOT, 'linux-unpacked', EXECUTABLE_NAME)
 }
 
 export const PACKAGED_BINARY_PATH = resolvePackagedBinaryPath()
