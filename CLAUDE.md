@@ -27,18 +27,21 @@
 
 Land session work fully automatically — the user does not want to touch PRs:
 
-1. **Sync first — before any code change**, bring the session branch up to
-   the current remote tip: `git fetch origin NousAI-Assistant`, then
-   `git checkout -B <session-branch> origin/NousAI-Assistant` when the branch
-   carries no unmerged commits (the normal case — after its PR merges, restart
-   it the same way), or `git rebase origin/NousAI-Assistant` when it holds
-   unmerged work. Never start work from a stale tip.
-2. Develop on that session feature branch cut from `NousAI-Assistant`.
-3. Push, open a PR **based on `NousAI-Assistant`** (draft is fine).
+1. **Sync first — before any code change**: `git fetch origin NousAI-Assistant`
+   so work never starts from a stale tip.
+2. **Fresh branch per change (user-approved 2026-07-22)**: cut a NEW branch
+   `claude/nousai-<topic>` from `origin/NousAI-Assistant` for every change.
+   Never reuse a branch whose PR has merged — reuse forces non-fast-forward
+   pushes, which the permission classifier blocks and the stop hook flags.
+   Fresh branches keep every push a plain fast-forward.
+3. Push with plain `git push -u origin <branch>` (no force flags), open a PR
+   **based on `NousAI-Assistant`** (draft is fine).
 4. Watch CI (`ci.yml` runs on `pull_request` only — direct pushes to
    `NousAI-Assistant` run no CI, which is why the PR step exists).
 5. When green: mark ready and **squash-merge without asking**. Only pause for
    user input if CI reveals a real problem or the change is risky/destructive.
+   After the merge, leave the remote feature branch alone (the user deletes
+   merged branches from the GitHub UI); never push more commits to it.
 
 If repo Settings → Pull Requests → "Allow auto-merge" gets enabled, arm
 auto-merge (squash) at PR creation instead of watch-and-merge.
