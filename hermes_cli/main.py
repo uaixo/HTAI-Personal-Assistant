@@ -5458,7 +5458,13 @@ def _desktop_packaged_executable(desktop_dir: Path) -> Optional[Path]:
     """Return the current platform's unpacked Electron app executable."""
     release_dir = desktop_dir / "release"
     if sys.platform == "darwin":
-        candidates = list(release_dir.glob("mac*/Hermes.app/Contents/MacOS/Hermes"))
+        # Brand-agnostic: find any packaged .app and use the executable that
+        # matches the bundle name (productName may be rebranded, e.g. NousAI).
+        candidates = [
+            app / "Contents" / "MacOS" / app.stem
+            for app in sorted(release_dir.glob("mac*/*.app"))
+            if (app / "Contents" / "MacOS" / app.stem).exists()
+        ]
     elif sys.platform == "win32":
         candidates = [
             release_dir / "win-unpacked" / "Hermes.exe",
