@@ -163,7 +163,7 @@
     "electronVersion": "40.10.2",
     "appId": "ai.nous.desktop",
     "productName": "NousAI",
-    "executableName": "NousAI",
+    "executableName": "Hermes",
     "protocols": [
       {
         "name": "Hermes Protocol",
@@ -172,7 +172,7 @@
         ]
       }
     ],
-    "artifactName": "NousAI-${version}-${os}-${arch}.${ext}",
+    "artifactName": "Hermes-${version}-${os}-${arch}.${ext}",
     "icon": "assets/icon",
     "directories": {
       "output": "release"

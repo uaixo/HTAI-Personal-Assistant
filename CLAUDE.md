@@ -40,9 +40,11 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   re-asserting the NousAI brand values:
   - `assets/banner.png` (NousAI banner)
   - `apps/desktop/assets/icon.{png,ico,icns}` (NousAI icons)
-  - `apps/desktop/package.json` (productName/executableName `NousAI`,
-    appId `ai.nous.desktop`, artifactName `NousAI-…`; `hermes://` protocol
-    scheme and npm `name` stay upstream)
+  - `apps/desktop/package.json` (productName `NousAI`, appId
+    `ai.nous.desktop`; executableName, artifactName, the `hermes://`
+    protocol scheme, and npm `name` STAY upstream `Hermes…` —
+    `scripts/test-desktop.mjs` and the e2e fixtures hardcode those
+    binary/artifact paths, and CI packages the app)
   - `apps/desktop/index.html` (`<title>NousAI — Hermes</title>` — must keep
     the word `Hermes`: `e2e/boot.spec.ts` asserts it)
   - `apps/desktop/src/themes/presets.ts` (`nousaiTheme`, BUILTIN_THEMES entry,
