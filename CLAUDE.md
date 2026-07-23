@@ -71,6 +71,9 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     `apps/desktop/src/components/chat/intro-copy.jsonl` (empty-session hero:
     WORDMARK `NOUS AI ASSISTANT`, intro copy de-Hermes'd — user-approved
     2026-07-23)
+  - `apps/desktop/electron/main.ts` (one line: APP_NAME default `'NousAI'` —
+    drives macOS menu "About/Quit X", about panel, app.setName; the
+    HERMES_DESKTOP_APP_NAME env override is upstream and unchanged)
   - `apps/desktop/src/components/brand-mark.tsx` (BrandMark renders the added
     `public/nousai-mark.png` instead of `nous-girl.jpg`; upstream's asset file
     stays untouched — user-approved 2026-07-23)
