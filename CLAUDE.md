@@ -67,6 +67,10 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     and asserts those paths)
   - `hermes_cli/main.py` (brand-agnostic packaged desktop app lookup on
     macOS — user commit)
+  - `apps/desktop/src/components/chat/intro.tsx` +
+    `apps/desktop/src/components/chat/intro-copy.jsonl` (empty-session hero:
+    WORDMARK `NOUS AI ASSISTANT`, intro copy de-Hermes'd — user-approved
+    2026-07-23)
   - `apps/desktop/index.html` (`<title>NousAI — Hermes</title>` — must keep
     the word `Hermes`: `e2e/boot.spec.ts` asserts it)
   - `apps/desktop/src/themes/presets.ts` (`nousaiTheme`, BUILTIN_THEMES entry,
