@@ -71,6 +71,12 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     `apps/desktop/src/components/chat/intro-copy.jsonl` (empty-session hero:
     WORDMARK `NOUS AI ASSISTANT`, intro copy de-Hermes'd — user-approved
     2026-07-23)
+  - "Hermes Desktop" → "NousAI Desktop" everywhere the app displays it
+    (user-approved full sweep 2026-07-23): `apps/desktop/src/i18n/{en,ja,zh,zh-hant}.ts`,
+    `src/store/onboarding.ts`, `src/lib/desktop-{git,fs}.ts`,
+    `electron/{remote-lifecycle,hardening}.ts`, and the pinned string in
+    `src/i18n/runtime.test.ts`. On upstream-sync conflicts, keep upstream's
+    sentence and re-apply the product name.
   - `apps/desktop/index.html` (`<title>NousAI — Hermes</title>` — must keep
     the word `Hermes`: `e2e/boot.spec.ts` asserts it)
   - `apps/desktop/src/themes/presets.ts` (`nousaiTheme`, BUILTIN_THEMES entry,
