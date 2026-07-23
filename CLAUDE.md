@@ -71,6 +71,9 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     `apps/desktop/src/components/chat/intro-copy.jsonl` (empty-session hero:
     WORDMARK `NOUS AI ASSISTANT`, intro copy de-Hermes'd — user-approved
     2026-07-23)
+  - `apps/desktop/src/components/brand-mark.tsx` (BrandMark renders the added
+    `public/nousai-mark.png` instead of `nous-girl.jpg`; upstream's asset file
+    stays untouched — user-approved 2026-07-23)
   - "Hermes Desktop" → "NousAI Desktop" everywhere the app displays it
     (user-approved full sweep 2026-07-23): `apps/desktop/src/i18n/{en,ja,zh,zh-hant}.ts`,
     `src/store/onboarding.ts`, `src/lib/desktop-{git,fs}.ts`,
