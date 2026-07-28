@@ -56,7 +56,10 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   may conflict on upstream syncs; resolve by keeping upstream's changes and
   re-asserting the NousAI brand values:
   - `assets/banner.png` (NousAI banner)
-  - `apps/desktop/assets/icon.{png,ico,icns}` (NousAI icons)
+  - `apps/desktop/assets/icon.{png,ico,icns}` (NousAI icons) +
+    `apps/desktop/public/apple-touch-icon.png` (same artwork — electron
+    main.ts APP_ICON_PATHS feeds it to app.dock.setIcon at runtime,
+    overriding the bundle icns; also the onboarding provider-row logo)
   - `apps/desktop/package.json` (productName/executableName `NousAI`, appId
     `ai.nous.desktop`, artifactName `NousAI-…` — full-brand internals,
     user-approved 2026-07-22; only the `hermes://` protocol scheme and npm
