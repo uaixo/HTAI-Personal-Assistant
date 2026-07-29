@@ -13,6 +13,12 @@
   without asking for reversible mechanical steps that follow directly from
   the agreed task — running checks/tests, syncing the session branch, and
   the recorded PR → CI → squash-merge flow.
+- **Upstream sync first (user-approved 2026-07-29)**: at the start of every
+  request, check whether `origin/NousAI-Assistant` is behind
+  `nousresearch/hermes-agent:main`; if it is, run the conflict replay and
+  execute the sync yourself via the merge-commit PR flow (see "Executing an
+  upstream sync" below) BEFORE acting on the prompt itself. Do not hand the
+  sync back to the user or defer to GitHub's "Sync fork" button.
 
 ## Branches
 
@@ -45,6 +51,34 @@ Land session work fully automatically — the user does not want to touch PRs:
 
 If repo Settings → Pull Requests → "Allow auto-merge" gets enabled, arm
 auto-merge (squash) at PR creation instead of watch-and-merge.
+
+## Executing an upstream sync (PRs #13/#16/#18/#19 precedent)
+
+1. Fetch both sides (`git fetch origin NousAI-Assistant`; fetch upstream
+   `main` with enough depth), sanity-check the merge base (latest sync
+   point must be an ancestor of upstream/main), then replay with
+   `git merge-tree --write-tree origin/NousAI-Assistant upstream/main`.
+2. Even when the replay is textually clean, check the MERGED TREE for
+   semantic conflicts before executing: brand carve-out values intact, and
+   the drift grep (`git grep "Hermes Desktop" <tree> -- apps/desktop/src
+   apps/desktop/electron`) — PR #19 caught a new upstream test pinning a
+   rebranded i18n string this way; fix such tests in lockstep on the sync
+   branch.
+3. Fresh branch `claude/nousai-sync-upstream-<date>` from
+   `origin/NousAI-Assistant`, real merge, push, draft PR based on
+   `NousAI-Assistant` with a "merge with MERGE COMMIT — do not squash"
+   warning in the body.
+4. When CI is green: mark ready and merge with **merge_method "merge"**
+   (merge commit — NEVER squash a sync PR; squashing flattens upstream
+   history and breaks future syncs). Then fast-forward local.
+- **Review label gate (user-approved 2026-07-29)**: if the sync touches
+  CI-sensitive workflow files, the "Review label gate" job fails until the
+  PR carries the `ci-reviewed` label. Review the workflow diffs yourself;
+  if benign, apply the label — repo automation re-runs the gate once the
+  CI run has completed (a manual re-run is rejected while it's in
+  progress). ASK the user first only if a workflow change looks risky
+  (new/unpinned actions, secrets or permissions changes, trigger changes,
+  outbound network calls).
 
 ## Upstream-sync safety rules
 
