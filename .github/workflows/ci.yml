@@ -102,7 +102,7 @@ jobs:
     # regardless of the PR's diff (verified on #76573 and the docs-only
     # #76582). Tracking issue: #76627 (assigned: Ari). To re-enable,
     # delete the `false &&` below — nothing else changed.
-    if: ${{ false && (needs.detect.outputs.python_prod == 'true' || needs.detect.outputs.frontend == 'true') }}
+    if: ${{ needs.detect.outputs.python_prod == 'true' || needs.detect.outputs.frontend == 'true' }}
     uses: ./.github/workflows/e2e-desktop.yml
 
   docs-site:
