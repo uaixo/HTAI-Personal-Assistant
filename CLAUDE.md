@@ -79,6 +79,20 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   progress). ASK the user first only if a workflow change looks risky
   (new/unpinned actions, secrets or permissions changes, trigger changes,
   outbound network calls).
+- **MCP catalog security review gate (user-approved 2026-08-15)**: the same
+  "Review label gate" job also fires when a sync touches
+  `optional-mcps/**/manifest.yaml` or the MCP catalog installer
+  (`hermes_cli/mcp_catalog.py`, `hermes_cli/web_routers/mcp.py`). Same
+  terms as the workflow gate: review it yourself against the gate's four
+  criteria and self-apply `ci-reviewed` when clean. Clean means: transport
+  is remote (`type: http`/`sse`) with OAuth to the vendor's own official
+  HTTPS endpoint, no `command`/`args`, no `install` refs, no env
+  vars/secrets requested. `post_install` is print-only documentation
+  (mcp_catalog.py just prints it), not an execution hook. ASK the user
+  first if any entry adds a **stdio/local-command transport**, an
+  **install ref** (git+/npx/uvx/pip bootstrap), or **requests env
+  vars/secrets** — those are the surfaces that can execute code or
+  exfiltrate on the user's machine.
 
 ## Upstream-sync safety rules
 
