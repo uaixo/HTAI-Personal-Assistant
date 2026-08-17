@@ -375,7 +375,7 @@ export const host = {
     const getProfileRoutes = desktop?.getProfileRoutes
 
     if (!getProfileRoutes) {
-      throw new Error('Hermes Desktop connection routing unavailable')
+      throw new Error('NousAI Desktop connection routing unavailable')
     }
 
     let profiles = $profiles.get()

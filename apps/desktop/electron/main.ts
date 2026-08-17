@@ -10098,7 +10098,7 @@ async function startHermes() {
   // otherwise SIGTERMs the running instance's live backend (#87295).
   if (!isPrimaryInstance) {
     rememberLog('[boot] non-primary instance: skipping backend machinery')
-    throw new Error('Hermes Desktop is already running in another window.')
+    throw new Error('NousAI Desktop is already running in another window.')
   }
 
   await reapOrphanedBackendsOnce()

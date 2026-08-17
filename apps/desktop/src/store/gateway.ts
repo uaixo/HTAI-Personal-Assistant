@@ -533,7 +533,7 @@ export async function requestGatewayForAgent<T>(
   }
 
   if (!window.hermesDesktop?.getConnectionFor) {
-    throw new Error('This Desktop build cannot dial registry connections. Update Hermes Desktop.')
+    throw new Error('This Desktop build cannot dial registry connections. Update NousAI Desktop.')
   }
 
   const entry = g.secondaries.get(scope) ?? createSecondary(key, connectionId)

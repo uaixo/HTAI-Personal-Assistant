@@ -3089,7 +3089,7 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
     if (bot.remoteSource) {
       if (typeof host.ensureAgent !== 'function') {
         host.notifyError?.(
-          new Error('Update Hermes Desktop to chat with agents on other connections.'),
+          new Error('Update NousAI Desktop to chat with agents on other connections.'),
           bot.connectionLabel || 'Remote source'
         )
 
@@ -5767,7 +5767,7 @@ async function openProfileSession(botName, storedId, gatewayGeneration) {
   const id = String(storedId || '')
   if (!NAME_RE.test(profile) || !id || gatewayGeneration !== $sessionsGatewayGeneration.get()) return
   if (typeof host.openSession !== 'function') {
-    throw new Error('This Hermes Desktop version cannot open stored sessions')
+    throw new Error('This NousAI Desktop version cannot open stored sessions')
   }
   await host.openSession(id, { profile })
   if (gatewayGeneration !== $sessionsGatewayGeneration.get()) return
