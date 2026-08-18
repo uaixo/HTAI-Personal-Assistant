@@ -450,6 +450,10 @@ async def test_session_chat_stream_treats_pre_existing_poisoned_row_as_no_model(
                 json={"message": "hi"},
             )
             assert resp.status == 200
+            # Drain the SSE body so the streaming handler finishes (and its
+            # _run_agent call lands) before the client context tears down —
+            # same pattern as the stored-lock streaming test below.
+            await resp.read()
 
     _, kwargs = mock_run.call_args
     assert kwargs["session_model"] is None
