@@ -147,6 +147,16 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   - `hermes_cli/web_server.py` (one `nousai` row in `_BUILTIN_DASHBOARD_THEMES`)
 - Deliberately NOT forked: `ui-tui/` default theme/content (runtime skin
   already themes the TUI; upstream tests hardcode the Hermes brand there).
+- **Temporary divergence (user-approved 2026-08-18, PR #64)**:
+  `tests/gateway/test_session_api.py` — upstream's
+  `test_session_chat_stream_treats_pre_existing_poisoned_row_as_no_model`
+  (added upstream 152b1940d7) races: it asserts `mock_run.call_args` without
+  draining the SSE body, failing ~70% of runs (reproduced locally 7/10). We
+  carry a 1-line lockstep fix (`await resp.read()` after the status assert —
+  upstream's own pattern elsewhere in the same file; 12/12 local passes).
+  Expected to self-heal: if upstream ships the same fix the next sync merges
+  clean; if their fix differs, resolve by taking upstream's version and drop
+  this note.
 - If the `check-attribution` CI job flags unmapped upstream author emails, map
   them with `python3 scripts/add_contributor.py <email> <github-login>` —
   verify the login from the commit's linked author via the GitHub API, don't
