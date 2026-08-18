@@ -2983,7 +2983,7 @@ let botOpenGeneration = 0
 
 async function openStoredBotChat(name, storedId, summary) {
   if (!storedId || typeof host.openSession !== 'function') {
-    throw new Error('This Hermes Desktop version cannot open stored sessions')
+    throw new Error('This NousAI Desktop version cannot open stored sessions')
   }
 
   const hasAuthoritativeCount =
