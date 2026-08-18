@@ -304,7 +304,6 @@ export interface Translations {
       providerApiKeys: string
       providerCustomEndpoints: string
       gateway: string
-      connections: string
       apiKeys: string
       keybinds: string
       keysTools: string
@@ -331,6 +330,7 @@ export interface Translations {
       agent: {
         title: string
         blurb: string
+        appliesTo: string
         empty: string
         loadFailed: string
         portable: string
@@ -583,6 +583,12 @@ export interface Translations {
       headerValueSaved: string
       headerAdd: string
       headerRemove: string
+      duplicateLocal: string
+      duplicateUrl: (label: string) => string
+      duplicateSsh: (label: string) => string
+      sameBackendHint: (label: string) => string
+      localAddHint: string
+      cloudAddHint: string
       save: string
       saving: string
       cancel: string
@@ -595,17 +601,11 @@ export interface Translations {
       title: string
       envOverride: string
       intro: string
-      appliesTo: string
-      allProfiles: string
-      defaultConnection: string
-      profileConnection: (profile: string) => string
       envOverrideTitle: string
       envOverrideDesc: string
       modeTitle: string
       localTitle: string
       localDesc: string
-      inheritTitle: string
-      inheritDesc: string
       remoteTitle: string
       remoteDesc: string
       remoteAuthHint: string
@@ -704,8 +704,6 @@ export interface Translations {
       sshHermesPathTitle: string
       sshHermesPathDesc: string
       sshHermesPathPlaceholder: string
-      sshRemoteProfileTitle: string
-      sshRemoteProfileDesc: string
       sshTestConnection: string
       sshConnect: string
       sshButtonsHint: string
@@ -724,6 +722,10 @@ export interface Translations {
       loading: string
       failedLoad: string
       empty: string
+    }
+    profileScope: {
+      appliesTo: string
+      editsProfile: (profile: string) => string
     }
     mcp: {
       loading: string
