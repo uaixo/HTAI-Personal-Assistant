@@ -42,7 +42,8 @@ Land session work fully automatically — the user does not want to touch PRs:
    Fresh branches keep every push a plain fast-forward.
 3. Push with plain `git push -u origin <branch>` (no force flags), open a PR
    **based on `NousAI-Assistant`** (draft is fine).
-4. Watch CI (`ci.yml` runs on `pull_request` only — direct pushes to
+4. Watch CI (`ci.yaml` — renamed from `ci.yml` upstream 2026-08-19 — runs on
+   `pull_request` only — direct pushes to
    `NousAI-Assistant` run no CI, which is why the PR step exists).
 5. When green: mark ready and **squash-merge without asking**. Only pause for
    user input if CI reveals a real problem or the change is risky/destructive.
