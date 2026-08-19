@@ -42,7 +42,8 @@ Land session work fully automatically — the user does not want to touch PRs:
    Fresh branches keep every push a plain fast-forward.
 3. Push with plain `git push -u origin <branch>` (no force flags), open a PR
    **based on `NousAI-Assistant`** (draft is fine).
-4. Watch CI (`ci.yml` runs on `pull_request` only — direct pushes to
+4. Watch CI (`ci.yaml` — renamed from `ci.yml` upstream 2026-08-19 — runs on
+   `pull_request` only — direct pushes to
    `NousAI-Assistant` run no CI, which is why the PR step exists).
 5. When green: mark ready and **squash-merge without asking**. Only pause for
    user input if CI reveals a real problem or the change is risky/destructive.
@@ -147,6 +148,16 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   - `hermes_cli/web_server.py` (one `nousai` row in `_BUILTIN_DASHBOARD_THEMES`)
 - Deliberately NOT forked: `ui-tui/` default theme/content (runtime skin
   already themes the TUI; upstream tests hardcode the Hermes brand there).
+- **Temporary divergence (user-approved 2026-08-19, PR #67)**:
+  `tools/image_generation_tool.py` — upstream's Grok Imagine 2.0 catalog
+  entry (added upstream ceabb030fb) ships `"upscale": True`, which
+  deterministically fails upstream's own policy test
+  (`tests/tools/test_image_generation.py::TestFalCatalog::test_upscale_defaults_are_all_off`;
+  their Aug-2026 policy: default upscaling degraded text/CJK/faces). We
+  carry a 1-line fix setting it to `False` per that written policy.
+  Self-heal rule: on the next sync conflict here, take upstream's version
+  whichever way they resolved it (fix the catalog OR relax the test) and
+  drop this note.
 - If the `check-attribution` CI job flags unmapped upstream author emails, map
   them with `python3 scripts/add_contributor.py <email> <github-login>` —
   verify the login from the commit's linked author via the GitHub API, don't
