@@ -316,9 +316,24 @@ function handleSessionsGatewayTransition() {
  *  { [botName]: { shape, color, title } } */
 const $botMeta = atom({})
 
+/** Freshness fence for the server-meta overlay: the last moment each bot's
+ *  local meta was written (stamped again once the server write settles).
+ *  mergeServerMeta refuses to overlay a roster snapshot FETCHED BEFORE this
+ *  moment — such a snapshot still carries the pre-write ui_meta, and
+ *  spreading it over local meta resurrects state the user just changed
+ *  (disbanded groups reappearing as empty roster rows, renames reverting,
+ *  unpins undoing). Runtime-only by design: on a fresh window there are no
+ *  in-flight local writes for a stale snapshot to clobber. */
+const botMetaWriteAt = new Map()
+
+function noteBotMetaWrite(name) {
+  botMetaWriteAt.set(name, Date.now())
+}
+
 async function saveBotMeta(name, patch) {
   const prevMeta = $botMeta.get()[name] || {}
   const next = { ...$botMeta.get(), [name]: { ...prevMeta, ...patch } }
+  noteBotMetaWrite(name)
   $botMeta.set(next)
 
   // Local plugin storage: instant, and the fallback for older gateways.
@@ -382,6 +397,10 @@ async function saveBotMeta(name, patch) {
     } catch {
       /* older/unavailable gateway — the local fallback remains saved */
     }
+    // Re-stamp now that the server write settled: a roster snapshot fetched
+    // while profiles.configure was still in flight predates the new ui_meta
+    // just as surely as one fetched before the local write.
+    noteBotMetaWrite(name)
   }
 
   return { serverPersisted: serverOutcome === 'persisted', serverOutcome }
@@ -703,8 +722,16 @@ function pullServerAvatars(roster) {
  *  pet icon) are PRESERVED — the server copy never includes them, so a
  *  naive replace would wipe a just-saved image avatar on the next roster
  *  paint. When server bot metadata exists, an omitted chat is authoritative
- *  deletion; local still fills all gaps for older gateways with no metadata. */
-function mergeServerMeta(roster) {
+ *  deletion; local still fills all gaps for older gateways with no metadata.
+ *
+ *  `fetchedAt` (the snapshot's issue time) fences the overlay: a bot whose
+ *  local meta was written AFTER the snapshot was fetched is skipped — that
+ *  snapshot's ui_meta predates the write, and spreading it back over local
+ *  meta resurrects state the user just changed (a disbanded group's
+ *  membership reappearing as an empty roster row, a rename reverting, an
+ *  unpin undoing). The next roster fetch post-dates the write and overlays
+ *  normally, so server truth still gets the last word. */
+function mergeServerMeta(roster, fetchedAt = 0) {
   const local = $botMeta.get()
   let changed = false
   const next = { ...local }
@@ -712,6 +739,9 @@ function mergeServerMeta(roster) {
   for (const bot of roster) {
     const server = bot.ui_meta?.['hermes-bots']
     if (server && typeof server === 'object') {
+      if (fetchedAt && fetchedAt < (botMetaWriteAt.get(bot.name) || 0)) {
+        continue
+      }
       const mine = next[bot.name] || {}
       const merged = { ...mine, ...server }
 
@@ -2760,6 +2790,11 @@ function useRoster() {
   return useQuery({
     queryKey: [...ROSTER_KEY, activeConnectionId],
     queryFn: async () => {
+      // Stamp the ISSUE time on the snapshot: mergeServerMeta compares it
+      // against each bot's last local meta write, and a fetch issued before
+      // a write can only carry pre-write ui_meta. (Issue time is the
+      // conservative bound — the server answered no earlier than this.)
+      const issuedAt = Date.now()
       // Rich rows (last_session, ui_meta, has_avatar) come from the ACTIVE
       // gateway's profiles.list — unchanged single-source behavior.
       const pins = preferredSessionIds($botMeta.get())
@@ -2780,13 +2815,13 @@ function useRoster() {
       if (typeof host.agents === 'function') {
         try {
           const union = await host.agents()
-          return mergeMultiSourceRoster(local, union, activeConnectionId, $lastRoster.get())
+          return { ...mergeMultiSourceRoster(local, union, activeConnectionId, $lastRoster.get()), fetchedAt: issuedAt }
         } catch {
           /* older build or roster failure — single-source list stands */
         }
       }
 
-      return local
+      return { ...(local && typeof local === 'object' ? local : {}), fetchedAt: issuedAt }
     },
     refetchInterval: 5000,
     staleTime: 5000,
@@ -3782,12 +3817,25 @@ function groupChatNames(metaByName, rooms) {
   const names = new Set(knownGroups(metaByName))
 
   for (const [name, room] of Object.entries(rooms || {})) {
+    if (room?.tombstone) {
+      continue
+    }
+
     if ((Array.isArray(room?.members) && room.members.length) || (Array.isArray(room?.log) && room.log.length)) {
       names.add(name)
     }
   }
 
   return [...names]
+}
+
+/** Names of REAL rooms in the atom — disband tombstones excluded. Feeds the
+ *  create/rename collision sets so a just-disbanded name is immediately
+ *  reusable even while an in-flight drive's tombstone still holds its key. */
+function liveGroupChatNames() {
+  return Object.entries($groupChats.get())
+    .filter(([, room]) => !room?.tombstone)
+    .map(([name]) => name)
 }
 
 /** Millisecond timestamp of a room's newest log entry (0 for a silent room) —
@@ -4091,6 +4139,14 @@ function updateGroupChat(group, mutate) {
     const durable = {}
 
     for (const [name, room] of Object.entries(all)) {
+      // Disband tombstones are runtime-only coordination state (they hold the
+      // epoch bump for an in-flight drive). Persisting one would resurrect
+      // the room as an empty record on the next load AND keep its name
+      // "taken" for same-name recreates.
+      if (room.tombstone) {
+        continue
+      }
+
       durable[name] = {
         log: room.log,
         watermarks: room.watermarks,
@@ -4102,6 +4158,8 @@ function updateGroupChat(group, mutate) {
         // Source-qualified member descriptors keep the room whole when the
         // active connection changes and today's local members become remote.
         members: Array.isArray(room.members) ? room.members : [],
+        // Immutable room identity: the member-session title for new rooms.
+        roomId: typeof room.roomId === 'string' && room.roomId ? room.roomId : null,
         // Room picture (small data URL, same normalization as bot avatars).
         image: room.image || null
       }
@@ -4119,7 +4177,7 @@ function updateGroupChat(group, mutate) {
  *  membership list (the metadata syncs cross-machine via ui_meta), drop the
  *  room log from the atom + plugin storage, and close the room view if it's
  *  open. Other group memberships and the members' per-group gateway sessions
- *  ("Group: <name>") are intentionally KEPT. */
+ *  ("Group: <roomId>", or legacy "Group: <name>") are intentionally KEPT. */
 async function disbandGroupChat(group, members) {
   // Invalidate any in-flight round-robin FIRST: bump the epoch so a running
   // drive bails at its next member boundary instead of appending to a room
@@ -4129,9 +4187,12 @@ async function disbandGroupChat(group, members) {
 
   delete all[group]
   // Keep a runtime-only tombstone while a drive may still be mid-turn; it
-  // carries no log and is never persisted, so it can't rehydrate.
+  // carries no log and is flagged so persistence and name-dedup skip it —
+  // updateGroupChat writes the WHOLE atom map, so an unflagged tombstone
+  // would be persisted by the next unrelated room write and its name would
+  // count as taken, suffixing a same-name recreate to "<name> 2" forever.
   if (prior.running) {
-    all[group] = { log: [], watermarks: {}, sessions: {}, epoch: (prior.epoch || 0) + 1, running: false }
+    all[group] = { log: [], watermarks: {}, sessions: {}, epoch: (prior.epoch || 0) + 1, running: false, tombstone: true }
   }
 
   $groupChats.set(all)
@@ -4161,6 +4222,7 @@ async function disbandGroupChat(group, members) {
           watermarks: room.watermarks,
           sessions: room.sessions || {},
           members: Array.isArray(room.members) ? room.members : [],
+          roomId: typeof room.roomId === 'string' && room.roomId ? room.roomId : null,
           image: room.image || null
         }
       }
@@ -4182,6 +4244,13 @@ async function disbandGroupChat(group, members) {
     const meta = $botMeta.get()[member.name] || {}
     await saveBotMeta(member.name, groupMembershipPatch(meta, group, false))
   }
+
+  // Converge on server truth: the cached roster still carries the pre-disband
+  // ui_meta (the write-fence in mergeServerMeta keeps it from resurrecting
+  // the membership, but a fresh snapshot is what makes every surface agree).
+  if (typeof queryClient !== 'undefined' && queryClient?.invalidateQueries) {
+    queryClient.invalidateQueries({ queryKey: ROSTER_KEY })
+  }
 }
 
 /** Set or clear a group chat's room picture (small data URL, normalized by
@@ -4196,9 +4265,11 @@ function setGroupChatImage(group, image) {
 /** Rename a group chat. The group's NAME is its identity everywhere — the
  *  room-map key, each local member's ui_meta membership list, and derived
  *  state — so a rename re-keys all of them. Member gateway sessions are kept
- *  as-is: stored sids keep resuming, so no history is lost (only a member
- *  whose sid is later lost falls back to a fresh "Group: <new name>" title
- *  lookup). Returns the new name, or null when the target name is taken. */
+ *  as-is: stored sids keep resuming, so no history is lost. The room's
+ *  immutable roomId (the member-session title) is preserved across the
+ *  rename, so even a member whose sid is later lost falls back to the same
+ *  "Group: <roomId>" title lookup instead of a fresh "Group: <new name>".
+ *  Returns the new name, or null when the target name is taken. */
 async function renameGroupChat(oldName, newName, members) {
   const next = String(newName || '').trim().slice(0, 64)
 
@@ -4207,8 +4278,9 @@ async function renameGroupChat(oldName, newName, members) {
   }
 
   // Renames are explicit user intent: reject a collision honestly instead of
-  // silently suffixing like creation does.
-  const taken = new Set(Object.keys($groupChats.get()))
+  // silently suffixing like creation does. Disband tombstones don't hold
+  // their name — the room is gone, only its epoch survives briefly.
+  const taken = new Set(liveGroupChatNames())
 
   for (const meta of Object.values($botMeta.get() || {})) {
     for (const existing of botGroups(meta)) {
@@ -4275,6 +4347,12 @@ async function renameGroupChat(oldName, newName, members) {
     openGroupChat(next)
   }
 
+  // Same convergence as disband: drop the pre-rename roster snapshot so the
+  // old name can't linger anywhere the fence doesn't cover.
+  if (typeof queryClient !== 'undefined' && queryClient?.invalidateQueries) {
+    queryClient.invalidateQueries({ queryKey: ROSTER_KEY })
+  }
+
   return next
 }
 
@@ -4300,6 +4378,33 @@ function appendGroupChatEntry(group, from, text, thread, images) {
   return entry
 }
 
+/** Fresh room identity for a group. Independent of the editable display
+ *  name: a disbanded-and-recreated group mints a new roomId even when the
+ *  display name is identical, so member sessions never resume by title. */
+function mintGroupRoomId() {
+  return `r${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
+}
+
+/** Unique display name for a NEW group. Collisions get a " 2", " 3", …
+ *  suffix; the BASE is truncated (never the joined string), so a 64-char
+ *  base keeps its suffix instead of colliding with the original. */
+function uniqueGroupChatName(base, taken) {
+  if (!taken.has(base)) {
+    return base
+  }
+
+  for (let n = 2; n < 100; n++) {
+    const suffix = ` ${n}`
+    const candidate = base.slice(0, 64 - suffix.length) + suffix
+
+    if (!taken.has(candidate)) {
+      return candidate
+    }
+  }
+
+  throw new Error('No free name for the group.')
+}
+
 /** Ensure the member's per-group session exists and return a LIVE runtime
  *  session id for it. Gateway-native: session.create mints the session
  *  (lazy until its first message), session.resume by stored id — or by
@@ -4307,8 +4412,11 @@ function appendGroupChatEntry(group, from, text, thread, images) {
  *  it after restarts. Cross-connection members route to their OWN source
  *  via requestForBot; the window's gateway never switches. */
 async function ensureGroupChatSession(group, member) {
-  const title = `Group: ${group}`
   const room = $groupChats.get()[group] || {}
+  // New rooms title member sessions by their immutable roomId so a
+  // same-name recreate never resumes the old room's sessions by title;
+  // legacy rooms without a roomId fall back to the display name.
+  const title = `Group: ${room.roomId || group}`
   const key = groupMemberKey(member)
   const known = room.sessions && room.sessions[key]
 
@@ -4673,7 +4781,7 @@ async function harvestStrandedGroupReply(group, member) {
   try {
     const stored = room.sessions?.[memberKey]
     state = await requestForBot(member, 'session.resume', {
-      session_id: stored || `Group: ${group}`,
+      session_id: stored || `Group: ${room.roomId || group}`,
       profile: member.name
     })
   } catch {
@@ -8529,9 +8637,9 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
   const canCreate = selected.length >= 2 && Boolean(name.trim() || selected.length)
 
   const create = () => {
-    let groupName = (name.trim() || placeholder).slice(0, 64)
+    const base = (name.trim() || placeholder).slice(0, 64)
 
-    if (selected.length < 2 || !groupName) {
+    if (selected.length < 2 || !base) {
       return
     }
 
@@ -8539,8 +8647,11 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
     // group under an existing name (easy — the default name is just the
     // member names) silently reopens the old room with its full log, which
     // reads as "not a fresh group" (db's Aug 2026 report). Uniquify against
-    // both live rooms and any bot's current grouping.
-    const taken = new Set(Object.keys($groupChats.get()))
+    // both live rooms and any bot's current grouping, then mint a fresh
+    // roomId: member sessions are titled by that roomId, so a
+    // disbanded-and-recreated group with the SAME display name still gets
+    // new sessions instead of resuming the old room's by title.
+    const taken = new Set(liveGroupChatNames())
 
     for (const meta of Object.values($botMeta.get() || {})) {
       for (const existing of botGroups(meta)) {
@@ -8548,15 +8659,8 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
       }
     }
 
-    if (taken.has(groupName)) {
-      let n = 2
-
-      while (taken.has(`${groupName} ${n}`)) {
-        n += 1
-      }
-
-      groupName = `${groupName} ${n}`.slice(0, 64)
-    }
+    const groupName = uniqueGroupChatName(base, taken)
+    const roomId = mintGroupRoomId()
 
     for (const bot of selected) {
       if (!bot.remoteSource) {
@@ -8571,6 +8675,7 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
 
     updateGroupChat(groupName, room => {
       room.members = roomMembers
+      room.roomId = roomId
 
       if (image) {
         room.image = image
@@ -9761,9 +9866,9 @@ function GroupChatWorkspace({ group, members, onBack }) {
             jsx('span', { className: 'font-medium text-foreground', children: group }),
             ' grouping from its ',
             String(members.length),
-            ' bots and clears the shared room log. The bots themselves and their “Group: ',
-            group,
-            '” sessions are kept.'
+            // New rooms title member sessions by roomId, legacy rooms by name —
+            // so the copy names the concept, not a literal session title.
+            ' bots and clears the shared room log. The bots themselves and their per-group sessions are kept.'
           ]
         }),
         destructive: true,
@@ -10100,7 +10205,7 @@ function BotsPane() {
 
   if (live) {
     $lastRoster.set(roster)
-    mergeServerMeta(activeSourceRoster)
+    mergeServerMeta(activeSourceRoster, data?.fetchedAt || 0)
     pullServerAvatars(activeSourceRoster)
     trackInboundActivity(activeSourceRoster)
     backfillMessagingProtocol(activeSourceRoster)
@@ -10566,6 +10671,7 @@ export default {
                   sessions: room.sessions && typeof room.sessions === 'object' ? room.sessions : {},
                   stranded: room.stranded && typeof room.stranded === 'object' ? room.stranded : {},
                   members: Array.isArray(room.members) ? room.members : [],
+                  roomId: typeof room.roomId === 'string' && room.roomId ? room.roomId : null,
                   image: typeof room.image === 'string' && room.image ? room.image : null,
                   epoch: 0,
                   running: false
