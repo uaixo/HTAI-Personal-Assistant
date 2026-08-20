@@ -310,6 +310,30 @@ export const nousaiTheme: DesktopTheme = {
   typography: {
     fontMono: `"JetBrains Mono", ${SYSTEM_MONO}`,
     fontUrl: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap'
+  },
+  // Single dark look (no darkColors), so this palette serves both variants.
+  // Drawn from the CLI nousai skin's vocabulary: indigo UI hues, cyan
+  // accents, emerald/amber/red status colors on deep ink.
+  terminal: {
+    foreground: '#E2E8F0',
+    cursor: '#22D3EE',
+    selectionBackground: '#312E81',
+    black: '#1E2543',
+    red: '#F87171',
+    green: '#34D399',
+    yellow: '#FBBF24',
+    blue: '#818CF8',
+    magenta: '#A78BFA',
+    cyan: '#22D3EE',
+    white: '#CBD5E1',
+    brightBlack: '#64748B',
+    brightRed: '#FCA5A5',
+    brightGreen: '#6EE7B7',
+    brightYellow: '#FCD34D',
+    brightBlue: '#A5B4FC',
+    brightMagenta: '#C4B5FD',
+    brightCyan: '#67E8F9',
+    brightWhite: '#F1F5F9'
   }
 }
 
