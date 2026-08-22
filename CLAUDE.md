@@ -80,6 +80,18 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   progress). ASK the user first only if a workflow change looks risky
   (new/unpinned actions, secrets or permissions changes, trigger changes,
   outbound network calls).
+- **Label-rerun push hazard (learned 2026-08-22, PR #72)**: after the
+  `ci-reviewed` label is applied, `label-rerun.yml` starts a waiter that
+  reruns the CI run's failed jobs once that run completes. Pushing a new
+  commit while the waiter is alive cancels the old run, which the waiter
+  treats as completion — it reruns the OLD head's run, and that rerun
+  enters the `ci-<ref>` concurrency group and cancels the NEW head's run
+  seconds into `detect`. A run whose detect was cancelled reports a
+  VACUOUS green ("All required checks pass" succeeds with every lane
+  skipped in ~30s) — never trust a green whose lanes all skipped.
+  Recover: cancel the old run's rerun attempt, then rerun ALL jobs (not
+  just failed) of the new head's run. Avoid: don't push to a labeled PR
+  until the label-rerun waiter's run has completed.
 - **MCP catalog security review gate (user-approved 2026-08-15)**: the same
   "Review label gate" job also fires when a sync touches
   `optional-mcps/**/manifest.yaml` or the MCP catalog installer
