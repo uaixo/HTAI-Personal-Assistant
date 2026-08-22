@@ -146,6 +146,27 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     `DEFAULT_SKIN_NAME = 'nousai'`)
   - `web/src/themes/presets.ts` (`nousaiTheme` + BUILTIN_THEMES entry)
   - `hermes_cli/web_server.py` (one `nousai` row in `_BUILTIN_DASHBOARD_THEMES`)
+- **CI runner carve-out (user-approved 2026-08-22)**: upstream pins several
+  CI jobs to GitHub larger runners (`ubuntu-latest-32-core`,
+  `ubuntu-latest-96-core`, `windows-latest-32-core`), an organization-plan
+  feature this personal-account fork cannot provide — the jobs queue forever
+  and CI never completes. On this fork those jobs run on standard hosted
+  runners; **re-assert after every upstream sync** (sweep:
+  `grep -rn -- "-core" .github/workflows/` and patch any `runs-on`/matrix
+  `runner:` hits). Change only the functional lines; leave upstream's
+  surrounding comments (they describe upstream's runners) untouched:
+  - `js-tests.yml`: `runs-on: ubuntu-latest`, timeout 60 (upstream: 32-core, 30)
+  - `tests.yml` "Run tests": `runs-on: ubuntu-latest`, timeout 120,
+    `HERMES_TEST_WORKERS: 8` (upstream: 96-core, 30, 96)
+  - `tests-os.yml` Windows matrix row: `runner: windows-latest`
+  - `rust-tests.yml`: `runs-on: ubuntu-latest`
+  - `nix.yml` flake-check job: `runs-on: ubuntu-latest`
+  - `e2e-desktop.yml`: `runs-on: ubuntu-latest`
+  - `docker.yml` is deliberately NOT patched: its build/publish jobs are
+    gated `if: github.repository == 'NousResearch/hermes-agent'` and can
+    never run on this fork.
+  If the consolidated Python suite overruns 120 min on the 4-core runner,
+  ask the user before escalating (fallback: restore a sharded matrix).
 - Deliberately NOT forked: `ui-tui/` default theme/content (runtime skin
   already themes the TUI; upstream tests hardcode the Hermes brand there).
 - If the `check-attribution` CI job flags unmapped upstream author emails, map
