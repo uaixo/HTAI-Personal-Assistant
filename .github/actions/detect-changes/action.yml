@@ -116,6 +116,17 @@ runs:
             echo "::warning::compare API failed (attempt $i); retrying in 10s"
             sleep 10
           done
+
+          # Fork carve-out: the compare API hard-caps the file list at 300.
+          # Upstream-sync PRs on this fork routinely exceed that, and a capped
+          # list silently skips lanes whose changed files sort past the cap
+          # (PR #74: Docs Site, Installer tests, and lockfile-diff all skipped
+          # over real changes). At the cap the list is untrustworthy — blank
+          # it so the classifier fails open and every lane runs.
+          if [ "$(printf '%s\n' "${CHANGED:-}" | grep -c .)" -ge 300 ]; then
+            echo "::warning::compare file list hit the API's 300-file cap — failing open (all lanes run)"
+            CHANGED=""
+          fi
         fi
 
         echo "Changed files:"
