@@ -182,6 +182,18 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     never run on this fork.
   If the consolidated Python suite overruns 120 min on the 4-core runner,
   ask the user before escalating (fallback: restore a sharded matrix).
+- **Detect 300-file-cap carve-out (user-approved 2026-08-25, PR #74/#75)**:
+  upstream's `.github/actions/detect-changes/action.yml` reads the changed
+  files from the compare API, which hard-caps the list at 300 files. Sync
+  PRs here routinely exceed that; files past the cap are invisible, so
+  lanes with real changes get silently skipped and "All required checks
+  pass" goes green vacuously (PR #74: Docs Site, Installer tests, and
+  lockfile-diff all skipped over real changes). The fork adds a guard
+  after the retry loop: at >=300 files, blank `CHANGED` so the classifier
+  fails open (all lanes run). **Re-assert after every upstream sync**; on
+  conflict keep upstream's version of the action and re-insert the guard.
+  Symptom check for any big sync: PR diff >300 files + a skipped lane =
+  verify the skip against the real diff before trusting the green.
 - Deliberately NOT forked: `ui-tui/` default theme/content (runtime skin
   already themes the TUI; upstream tests hardcode the Hermes brand there).
 - If the `check-attribution` CI job flags unmapped upstream author emails, map
