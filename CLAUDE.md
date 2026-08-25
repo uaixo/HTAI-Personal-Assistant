@@ -155,7 +155,10 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   - `apps/desktop/index.html` (`<title>NousAI — Hermes</title>` — must keep
     the word `Hermes`: `e2e/boot.spec.ts` asserts it)
   - `apps/desktop/src/themes/presets.ts` (`nousaiTheme`, BUILTIN_THEMES entry,
-    `DEFAULT_SKIN_NAME = 'nousai'`)
+    `DEFAULT_SKIN_NAME = 'nousai'`) + `presets.test.ts` (upstream's test pins
+    `expect(DEFAULT_SKIN_NAME).toBe('nous')` — re-assert `'nousai'` in
+    lockstep after every sync; learned 2026-08-25, PR #74, where GitHub log
+    truncation disguised this deterministic assertion as a crash)
   - `web/src/themes/presets.ts` (`nousaiTheme` + BUILTIN_THEMES entry)
   - `hermes_cli/web_server.py` (one `nousai` row in `_BUILTIN_DASHBOARD_THEMES`)
 - **CI runner carve-out (user-approved 2026-08-22)**: upstream pins several
