@@ -24,8 +24,12 @@
 
 - **`NousAI-Assistant` is the active development line**: a snapshot of upstream
   `nousresearch/hermes-agent` plus local additions. Base all work on it.
-- `main` is a stale upstream copy with unrelated history — never base work on
-  it, never open PRs against it.
+- `main` mirrors upstream `main` but is not kept current (updated only
+  sporadically; ~1,500 commits stale as of 2026-08-28) and carries none of
+  the NousAI carve-outs — never base work on it, never open PRs against it.
+  (Historical note: it originally had unrelated history; since ~2026-08 it
+  shares normal ancestry with `NousAI-Assistant`, so the reason to avoid it
+  is simply that it is not the development line, not ancestry.)
 - Never open PRs against `nousresearch/hermes-agent`. Upstream flows one way:
   upstream → this repo.
 
