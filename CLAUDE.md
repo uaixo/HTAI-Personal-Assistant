@@ -147,15 +147,19 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     stays untouched — user-approved 2026-07-23)
   - "Hermes Desktop" → "NousAI Desktop" everywhere the app displays it
     (user-approved full sweep 2026-07-23, re-swept 2026-07-26 after upstream
-    added new onboarding strings and the `ar` locale — **re-check after every
-    upstream sync**: `grep -rn "Hermes Desktop" apps/desktop/src apps/desktop/electron`
+    added new onboarding strings and the `ar` locale; scope widened to
+    `apps/shared/src` 2026-08-29, user-approved — **re-check after every
+    upstream sync**:
+    `grep -rn "Hermes Desktop" apps/desktop/src apps/desktop/electron apps/shared/src`
     and rebrand source + any test that pins those strings, in lockstep):
     `apps/desktop/src/i18n/{en,ja,zh,zh-hant,ar}.ts`,
     `src/components/desktop-install-overlay.test.tsx`,
     `src/store/onboarding.ts`, `src/lib/desktop-{git,fs}.ts`,
-    `electron/{remote-lifecycle,hardening}.ts`, and the pinned string in
-    `src/i18n/runtime.test.ts`. On upstream-sync conflicts, keep upstream's
-    sentence and re-apply the product name.
+    `electron/{remote-lifecycle,hardening}.ts`, the pinned string in
+    `src/i18n/runtime.test.ts`, and `apps/shared/src/websocket-url.ts`
+    (OAuth ticket error message; the test pinning it matches only the
+    unbranded half of the sentence). On upstream-sync conflicts, keep
+    upstream's sentence and re-apply the product name.
   - `apps/desktop/index.html` (`<title>NousAI — Hermes</title>` — must keep
     the word `Hermes`: `e2e/boot.spec.ts` asserts it)
   - `apps/desktop/src/themes/presets.ts` (`nousaiTheme`, BUILTIN_THEMES entry,
