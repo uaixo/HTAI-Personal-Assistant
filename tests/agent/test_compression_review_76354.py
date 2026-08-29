@@ -460,16 +460,26 @@ class TestS3IdleChargedFromLastProgress:
     def test_silence_cannot_approach_double_idle_timeout(self):
         """Progress early in an interval must not extend silence to ~2x idle."""
         _drain_admission_slots()
+        # The timeout path resolves the stall-fallback route, whose first
+        # call pays a one-time config load (~0.2-0.3s cold) INSIDE the timed
+        # region — billing setup cost against the idle budget flakes the
+        # assertion below on cold 4-core CI runners. Warm it up front: this
+        # test asserts idle-charge shape, not config-load speed.
+        cc.resolve_compression_fallback_route()
         idle = 0.4
         release = threading.Event()
+        touched_at: list[float] = []
 
         def worker(fence: CompressionCommitFence):
-            time.sleep(0.05)
+            # Keep the pre-touch sleep tiny: the old buggy behavior ends
+            # ~2x idle after the WAIT started, so every ms slept before the
+            # touch shrinks the old-vs-budget discrimination margin below.
+            time.sleep(0.01)
             fence.touch_progress()  # early progress, then total silence
+            touched_at.append(time.monotonic())
             assert release.wait(timeout=10)
             return ([], "late")
 
-        t0 = time.monotonic()
         try:
             msgs, prompt = run_compress_context_with_progress_timeout(
                 worker=worker,
@@ -479,14 +489,21 @@ class TestS3IdleChargedFromLastProgress:
                 total_ceiling_seconds=5.0,
             )
         finally:
-            elapsed = time.monotonic() - t0
+            t_end = time.monotonic()
             release.set()
         assert prompt == "fb"
-        # Old behavior waited a full interval from the CHECK (~2x idle ≈
-        # 0.85s+). New behavior times out ~idle after the last progress
-        # (~0.45s). Allow generous slack while still excluding ~2x.
-        assert elapsed < idle * 1.8, (
-            f"silence exceeded ~2x idle budget shape: {elapsed:.2f}s"
+        assert touched_at, "worker never touched progress"
+        # Old behavior waited full idle slices anchored to the CHECK, ending
+        # ~2x idle after the wait started — ~0.79s after the touch here. New
+        # behavior times out ~idle (~0.40s) after the last progress. Charge
+        # the budget from the progress event itself — measuring from before
+        # the call would also bill worker startup against it. 1.5x sits
+        # ~0.19s from BOTH shapes, so runner noise can neither flake the new
+        # behavior nor sneak the old one under the bar.
+        silence = t_end - touched_at[0]
+        assert silence < idle * 1.5, (
+            f"silence after last progress exceeded idle-charged budget "
+            f"shape: {silence:.2f}s"
         )
         _drain_admission_slots()
 
