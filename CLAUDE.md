@@ -178,7 +178,26 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   `grep -rn -- "-core" .github/workflows/` and patch any `runs-on`/matrix
   `runner:` hits). Change only the functional lines; leave upstream's
   surrounding comments (they describe upstream's runners) untouched:
-  - `js-tests.yml`: `runs-on: ubuntu-latest`, timeout 60 (upstream: 32-core, 30)
+  - `js-tests.yml`: `runs-on: ubuntu-latest`, timeout 60 (upstream: 32-core, 30),
+    and `run-workspace-checks.mjs --concurrency 1` (user-approved 2026-09-03,
+    PR #88). Upstream passes no flag, so the default is
+    `min(units, availableParallelism())` — sized for its 32-core runner. On
+    4 cores that starts 4 check units at once, each forking its own
+    vitest/tsc/eslint worker pool; the oversubscription pushes
+    wall-clock-budgeted tests past their timeouts. PR #88 hit six such tests
+    across three units (`web` SessionsPage #99387 @5s, `ui-tui`
+    cursorDriftRegression @30s + virtualHistoryOffsetCache, `apps/desktop`
+    local-models-settings ×2 + toolset-config-panel @15s) — ALL of which pass
+    in isolation. Measured: at the default (4 on a 4-core box) all six fail;
+    at `2` five recover but web's #99387 still misses its 5000ms budget by
+    47ms; run alone the web suite passes 5/5 (291 tests each), hence `1`.
+    Serial costs ~19min of the 60min timeout. Same reasoning as
+    `HERMES_TEST_WORKERS: 8` in tests.yml.
+    NOTE when diagnosing this lane: `run-workspace-checks.mjs` ends with
+    `process.exit(1)`, which drops its own unflushed `=== summary ===` and
+    `::error::` lines, so the CI log NEVER names the failing unit and the
+    check run's output fields are empty. Reproduce locally instead:
+    `node .github/scripts/run-workspace-checks.mjs`.
   - `tests.yml` "Run tests": `runs-on: ubuntu-latest`, timeout 120,
     `HERMES_TEST_WORKERS: 8` (upstream: 96-core, 30, 96)
   - `tests-os.yml` Windows matrix row: `runner: windows-latest`
@@ -190,6 +209,22 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     never run on this fork.
   If the consolidated Python suite overruns 120 min on the 4-core runner,
   ask the user before escalating (fallback: restore a sharded matrix).
+- **Runner-size test carve-out (user-approved 2026-09-03, PR #88)**:
+  `tests/hermes_cli/test_local_quickstart.py` gains a
+  `_fits_any_catalog_model(monkeypatch)` helper that pins `probe_budget` to a
+  large budget, called from `test_quickstart_runs_all_three_legs` and
+  `test_quickstart_skips_satisfied_legs`. Without it the quickstart route
+  409s "no catalog model fits this machine": the smallest catalog entry
+  (`qwen3.8-27b`) needs 16.5 GB and this fork's standard runner probes
+  ~13.5 GB usable, so `select_variant` rejects all 4 entries. Upstream's
+  377 GB runner always fits, so upstream never sees it. This is DETERMINISTIC,
+  not a flake, and is the same root cause as the runner carve-outs above.
+  The test already stubs downloads, the runtime install and the state
+  endpoint but not the hardware probe — the gap is upstream's. Do NOT extend
+  the helper to `test_quickstart_refuses_when_nothing_fits`: that test wants
+  the real small budget and its 409 is the assertion. **Re-assert after every
+  upstream sync**; on conflict keep upstream's test body and re-add the
+  helper call.
 - **Detect 300-file-cap carve-out (user-approved 2026-08-25, PR #74/#75)**:
   upstream's `.github/actions/detect-changes/action.yml` reads the changed
   files from the compare API, which hard-caps the list at 300 files. Sync
