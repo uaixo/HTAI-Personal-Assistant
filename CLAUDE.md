@@ -27,8 +27,14 @@
 - `main` mirrors upstream `main`, resynced in bursts rather than continuously,
   so its staleness swings wildly — it was ~1,588 commits behind on 2026-08-28
   and sat exactly AT upstream `main` (`63279301bc`, 0 behind) on 2026-09-03.
-  Never quote a staleness figure from this file; measure it:
-  `git rev-list --count origin/main..upstream/main`. Current or not, `main`
+  Never quote a staleness figure from this file; measure it — and FETCH BOTH
+  SIDES FIRST, because `origin/main` and `upstream/main` are local tracking
+  refs that go stale for days, so measuring without a fetch reproduces
+  exactly the fabricated figure this bullet exists to prevent (this repo's
+  own reflog shows local `origin/main` frozen at `261a4efb90` from
+  2026-08-22 to 2026-08-29 while upstream moved 1,588 commits ahead):
+  `git fetch -q origin main && git fetch -q upstream main && git rev-list
+  --count origin/main..upstream/main`. Current or not, `main`
   carries none of the NousAI carve-outs (no `nousai-branding/`,
   `DEFAULT_SKIN_NAME = 'nous'`) — never base work on it, never open PRs
   against it.
