@@ -24,9 +24,14 @@
 
 - **`NousAI-Assistant` is the active development line**: a snapshot of upstream
   `nousresearch/hermes-agent` plus local additions. Base all work on it.
-- `main` mirrors upstream `main` but is not kept current (updated only
-  sporadically; ~1,500 commits stale as of 2026-08-28) and carries none of
-  the NousAI carve-outs — never base work on it, never open PRs against it.
+- `main` mirrors upstream `main`, resynced in bursts rather than continuously,
+  so its staleness swings wildly — it was ~1,588 commits behind on 2026-08-28
+  and sat exactly AT upstream `main` (`63279301bc`, 0 behind) on 2026-09-03.
+  Never quote a staleness figure from this file; measure it:
+  `git rev-list --count origin/main..upstream/main`. Current or not, `main`
+  carries none of the NousAI carve-outs (no `nousai-branding/`,
+  `DEFAULT_SKIN_NAME = 'nous'`) — never base work on it, never open PRs
+  against it.
   (Historical note: it originally had unrelated history; since ~2026-08 it
   shares normal ancestry with `NousAI-Assistant`, so the reason to avoid it
   is simply that it is not the development line, not ancestry.)
@@ -97,9 +102,18 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   just failed) of the new head's run. Avoid: don't push to a labeled PR
   until the label-rerun waiter's run has completed.
 - **MCP catalog security review gate (user-approved 2026-08-15)**: the same
-  "Review label gate" job also fires when a sync touches
-  `optional-mcps/**/manifest.yaml` or the MCP catalog installer
-  (`hermes_cli/mcp_catalog.py`, `hermes_cli/web_routers/mcp.py`). Same
+  "Review label gate" job also fires when a sync touches the MCP catalog
+  paths. The trigger set lives in `scripts/ci/classify_changes.py`
+  (`_MCP_CATALOG_PATHS` / `_MCP_CATALOG_FILES`, consumed by
+  `_is_mcp_catalog`) and is exactly two things: **any file under
+  `optional-mcps/`** — a directory PREFIX match, not just
+  `**/manifest.yaml`, though all 65 files there are manifests today — and
+  **the single file `hermes_cli/mcp_catalog.py`**. Corrected 2026-09-03:
+  this file used to also list `hermes_cli/web_routers/mcp.py`, which is
+  WRONG — that file exists (23,618 bytes) but appears nowhere in the
+  classifier or in `.github/`, and a PR touching only it classifies
+  `mcp_catalog=false`. Verify with
+  `printf 'PATH\n' | python3 scripts/ci/classify_changes.py`. Same
   terms as the workflow gate: review it yourself against the gate's four
   criteria and self-apply `ci-reviewed` when clean. Clean means: transport
   is remote (`type: http`/`sse`) with OAuth to the vendor's own official
@@ -110,6 +124,21 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   **install ref** (git+/npx/uvx/pip bootstrap), or **requests env
   vars/secrets** — those are the surfaces that can execute code or
   exfiltrate on the user's machine.
+  **Fail-open blind spot (verified 2026-09-03) — this gate can go silently
+  OFF.** Unlike every other lane, `mcp_catalog` is deliberately excluded
+  from the classifier's catch-all: `classify_changes.py` ends that branch
+  with `# explicitly skip mcp catalog here`. So an empty changed-file list
+  turns every other lane ON but leaves `mcp_catalog=false` (verified:
+  `printf '' | python3 scripts/ci/classify_changes.py` → `python=true
+  ci_review=true mcp_catalog=false`). That matters here because the fork's
+  own 300-file guard below deliberately empties that list on big sync PRs.
+  Normally upstream's `pull_request_changed_files()` recovery refills it and
+  the gate computes correctly — but when the recovery ALSO fails (non
+  `pull_request` event, `gh` error, or its 30s `--paginate` timeout on a
+  very large PR) the gate is off while CI still looks green. On any sync PR
+  large enough to trip the guard, check by hand and review the hits
+  yourself rather than trusting the gate's silence:
+  `git diff --name-only <base>..HEAD | grep -E '^optional-mcps/|^hermes_cli/mcp_catalog\.py$'`
 
 ## Upstream-sync safety rules
 
@@ -160,6 +189,31 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     (OAuth ticket error message; the test pinning it matches only the
     unbranded half of the sentence). On upstream-sync conflicts, keep
     upstream's sentence and re-apply the product name.
+    **That grep should return EXACTLY 2 hits, not 0 (verified 2026-09-03).**
+    `src/app/settings/model-settings.test.tsx` and
+    `src/lib/code-skew-error.test.ts` each quote a Python backend 503 detail
+    verbatim, emitted by `hermes_cli/web_server.py` ("…use Restart backend
+    in Hermes Desktop, or quit and reopen the app"). `web_server.py` is
+    upstream-owned and outside this rebrand carve-out, so rebranding the
+    fixtures would make them assert a string the backend never sends. Leave
+    them. Treat >2 hits as real drift and 0 hits as a sign someone
+    "fixed" these two — check before celebrating.
+    **Known blind spot — LOCALIZED product names are invisible to this grep
+    (verified 2026-09-03, NOT yet approved to fix).** The sweep matches only
+    the ASCII string "Hermes Desktop", so localized product-name forms slip
+    through: `src/i18n/zh.ts` carries 4 (`Hermes 桌面版` at lines 68, 76,
+    3760, 3761), one of which (`boot.ready`) is pinned by
+    `src/i18n/runtime.test.ts:21`, and `src/i18n/ja.ts:1474` carries
+    `'Hermes デスクトップを設定'`. This is PRE-EXISTING, not sync drift:
+    the counts are identical at the merge base, the fork tip, and
+    upstream/main. Do NOT rebrand these on your own initiative — the
+    recorded sweep is scoped to the literal product name, and widening it
+    to localized forms is a NEW divergence that needs an explicit user
+    request (it would also require editing `runtime.test.ts` in lockstep).
+    Beware two false positives when checking: `ar.ts`/`zh-hant.ts` use
+    localized "desktop" generically ("the desktop app"), and the KEY name
+    `startingHermesDesktop` in `en.ts`/`ru.ts`/`types.ts` is not display
+    copy — those values already read "NousAI Desktop".
   - `apps/desktop/index.html` (`<title>NousAI — Hermes</title>` — must keep
     the word `Hermes`: `e2e/boot.spec.ts` asserts it)
   - `apps/desktop/src/themes/presets.ts` (`nousaiTheme`, BUILTIN_THEMES entry,
@@ -209,6 +263,23 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     never run on this fork.
   If the consolidated Python suite overruns 120 min on the 4-core runner,
   ask the user before escalating (fallback: restore a sharded matrix).
+- **Compression de-flake carve-out (user-approved 2026-08-29, PR #82)** —
+  previously undocumented, recorded 2026-09-03: `tests/agent/
+  test_compression_review_76354.py` diverges from upstream in the S3
+  stall-fallback test. The load-bearing part is the budget: the fork asserts
+  `silence < idle * 1.5` where **upstream asserts `idle * 1.8`**. 1.8 is too
+  loose to be meaningful on this fork — under the old buggy behaviour the
+  measured silence lands ~0.75s against a 0.72s bar, so the test could
+  false-PASS; 1.5 restores a real margin on both sides. The fork also adds a
+  `cc.resolve_compression_fallback_route()` pre-warm plus a 0.01s pre-touch
+  sleep and `touched_at` anchoring. **Re-assert `idle * 1.5` after every
+  upstream sync** — a conflict here resolves silently toward upstream's 1.8
+  and the test then passes for the wrong reason. NOTE the pre-warm's 5-line
+  comment is now STALE: upstream added `stall_fallback=False` to the timed
+  call, so the config load it warms is no longer paid inside the timed
+  region. The call is harmless (cheap, idempotent) but the comment claims a
+  mechanism that no longer applies; fixing that comment is a separate
+  follow-up, not a sync task.
 - **Runner-size test carve-out (user-approved 2026-09-03, PR #88)**:
   `tests/hermes_cli/test_local_quickstart.py` gains a
   `_fits_any_catalog_model(monkeypatch)` helper that pins `probe_budget` to a
@@ -237,6 +308,24 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   conflict keep upstream's version of the action and re-insert the guard.
   Symptom check for any big sync: PR diff >300 files + a skipped lane =
   verify the skip against the real diff before trusting the green.
+  **DO NOT delete this guard as "redundant" (control flow traced
+  2026-09-03).** Upstream since added a `pull_request_changed_files()`
+  recovery in `scripts/ci/classify_changes.py`, which looks like it
+  supersedes the guard. It does not — it is *downstream* of it. `main()`
+  reads stdin and only calls the recovery `if not any(f.strip() for f in
+  files)`, so **blanking `CHANGED` is precisely what triggers the
+  recovery**, which then re-fetches the COMPLETE list from
+  `pulls/{pr}/files --paginate` (cap 3000, well above any sync here).
+  Remove the guard and the classifier goes back to deciding lanes from a
+  silently truncated 300-file list — strictly worse than before. Confirmed
+  end-to-end on PR #88: 1258 files, compare capped at 300, guard blanked
+  it, and the bot then reported `ci_review_files` holding 8 real `.github/`
+  paths — a populated list only possible if the recovery returned the full
+  set. Caveat worth knowing: the recovery returns `[]` on a non
+  `pull_request` event, on `gh` failure, or on its 30s `--paginate`
+  timeout, and `classify([])` then hits the catch-all — which turns every
+  lane on EXCEPT `mcp_catalog` (see the MCP gate's fail-open blind spot
+  above).
 - Deliberately NOT forked: `ui-tui/` default theme/content (runtime skin
   already themes the TUI; upstream tests hardcode the Hermes brand there).
 - If the `check-attribution` CI job flags unmapped upstream author emails, map
