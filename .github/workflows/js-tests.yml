@@ -79,5 +79,18 @@ jobs:
       # ``check:*`` script needs no change here. An empty list is an error and
       # not an empty run, because an empty run reports green after it checks
       # nothing.
+      # Fork carve-out: --concurrency 1. The default is
+      # min(units, availableParallelism()), which upstream sizes against the
+      # 32-core runner above. This fork runs the job on a 4-core standard
+      # runner, where units each forking their own vitest/tsc/eslint worker
+      # pool oversubscribe the box and push wall-clock-budgeted tests over
+      # their timeouts. Same reasoning as HERMES_TEST_WORKERS in tests.yml.
+      #
+      # Measured on a 4-core box (PR #88): at the default 4, six tests across
+      # three units failed on timing; at 2, five recovered but web's
+      # SessionsPage #99387 still missed a 5000ms budget by 47ms; run alone
+      # the web suite passed 5/5 (291 tests each). Serial costs wall time
+      # (~19min of the 60min budget above) and buys a lane that does not
+      # flake.
       - name: Run all workspace checks
-        run: node .github/scripts/run-workspace-checks.mjs
+        run: node .github/scripts/run-workspace-checks.mjs --concurrency 1
