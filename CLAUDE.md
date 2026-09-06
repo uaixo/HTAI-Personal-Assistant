@@ -87,6 +87,22 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
 4. When CI is green: mark ready and merge with **merge_method "merge"**
    (merge commit — NEVER squash a sync PR; squashing flattens upstream
    history and breaks future syncs). Then fast-forward local.
+- **Relocated-carve-out conflicts (learned 2026-09-06, PR #92)**: the
+  first real content conflicts this fork ever hit had one shape — upstream
+  deleted-and-relocated a large block that held a small carve-out, so git
+  saw "HEAD has ~2,400 lines here, upstream has one" and could not
+  auto-resolve. Resolve by taking UPSTREAM's file verbatim
+  (`git checkout --theirs -- <file>`), then re-applying the carve-out in
+  the file the code moved to (find it with `git grep -n <symbol>
+  upstream/main`). Prove the resolution is complete with the
+  set-difference test, which must show EXACTLY the destination files as
+  new divergences and EXACTLY the conflicted originals as gone:
+  `comm -13 <(git diff --name-only <base> origin/NousAI-Assistant | sort)
+  <(git diff --cached --name-only upstream/main | sort)` and the reverse
+  `comm -23`. Anything else in either list means a carve-out leaked or
+  was lost. Then update THIS file's carve-out paths to the new locations
+  in a separate follow-up PR — a stale path here sends the next session
+  looking for a carve-out in a file that no longer holds it.
 - **Review label gate (user-approved 2026-07-29)**: if the sync touches
   CI-sensitive workflow files, the "Review label gate" job fails until the
   PR carries the `ci-reviewed` label. Review the workflow diffs yourself;
@@ -168,8 +184,12 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     (packaged-app paths derive from package.json productName/executableName
     instead of hardcoding `Hermes` — required because CI packages the app
     and asserts those paths)
-  - `hermes_cli/main.py` (brand-agnostic packaged desktop app lookup on
-    macOS — user commit)
+  - `hermes_cli/main_desktop.py` (brand-agnostic packaged desktop app lookup
+    on macOS in `_desktop_packaged_executable_in` — user commit. Lived in
+    `hermes_cli/main.py` until upstream's Sep 2026 decomposition moved the
+    function; relocated in PR #92, 2026-09-06. The darwin branch globs
+    `mac*/*.app` and names the executable after the bundle; there must be
+    0 hits for the hardcoded `mac*/Hermes.app` in this file)
   - `apps/desktop/src/components/chat/intro.tsx` +
     `apps/desktop/src/components/chat/intro-copy.jsonl` (empty-session hero:
     WORDMARK `NOUS AI ASSISTANT`, intro copy de-Hermes'd — user-approved
@@ -198,8 +218,9 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     **That grep should return EXACTLY 2 hits, not 0 (verified 2026-09-03).**
     `src/app/settings/model-settings.test.tsx` and
     `src/lib/code-skew-error.test.ts` each quote a Python backend 503 detail
-    verbatim, emitted by `hermes_cli/web_server.py` ("…use Restart backend
-    in Hermes Desktop, or quit and reopen the app"). `web_server.py` is
+    verbatim, emitted by `hermes_cli/web_server_config.py` ("…use Restart
+    backend in Hermes Desktop, or quit and reopen the app"; it lived in
+    `web_server.py` until the Sep 2026 decomposition). That module is
     upstream-owned and outside this rebrand carve-out, so rebranding the
     fixtures would make them assert a string the backend never sends. Leave
     them. Treat >2 hits as real drift and 0 hits as a sign someone
@@ -228,7 +249,10 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     lockstep after every sync; learned 2026-08-25, PR #74, where GitHub log
     truncation disguised this deterministic assertion as a crash)
   - `web/src/themes/presets.ts` (`nousaiTheme` + BUILTIN_THEMES entry)
-  - `hermes_cli/web_server.py` (one `nousai` row in `_BUILTIN_DASHBOARD_THEMES`)
+  - `hermes_cli/web_server_dashboard.py` (one `nousai` row in
+    `_BUILTIN_DASHBOARD_THEMES`, between `default-large` and `nous-blue`.
+    Lived in `hermes_cli/web_server.py` until the Sep 2026 decomposition;
+    relocated in PR #92. `web_server.py` now defines the list 0 times)
 - **CI runner carve-out (user-approved 2026-08-22)**: upstream pins several
   CI jobs to GitHub larger runners (`ubuntu-latest-32-core`,
   `ubuntu-latest-96-core`, `windows-latest-32-core`), an organization-plan
@@ -273,8 +297,15 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     A local 6-run replay of the 16 compression/delegate files at -j 8 and
     -j 4 on a 4-core box did NOT reproduce, so the change rests on
     upstream's measurement plus that timing evidence, not on a local
-    repro. Wall time at 8 was 34 min of the 120-min timeout; measure it
-    at 4 before touching either number again.
+    repro. MEASURED after the fact on PR #92's green run (2026-09-06):
+    at 4 workers the full suite passed 45022/0 failed/444 skipped in
+    1630.8s where the second 8-worker attempt took 2010.2s — 19% FASTER
+    wall clock — and total per-file subprocess wall fell from 15513s to
+    6516s (P50 2.58s -> 1.00s, slowest file 471s -> 135s). Oversubscription
+    had been inflating every file's runtime ~2.4x, which is exactly the
+    regime that breaks 1-2s in-test budgets. Both timeouts (120 min job,
+    60 min js-tests) have ample headroom; re-measure before touching
+    either number again.
   - `tests-os.yml` Windows matrix row: `runner: windows-latest`
   - `rust-tests.yml`: `runs-on: ubuntu-latest`
   - `nix.yml` flake-check job: `runs-on: ubuntu-latest`
