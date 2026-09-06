@@ -252,14 +252,29 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     at `2` five recover but web's #99387 still misses its 5000ms budget by
     47ms; run alone the web suite passes 5/5 (291 tests each), hence `1`.
     Serial costs ~19min of the 60min timeout. Same reasoning as
-    `HERMES_TEST_WORKERS: 8` in tests.yml.
+    `HERMES_TEST_WORKERS: 4` in tests.yml.
     NOTE when diagnosing this lane: `run-workspace-checks.mjs` ends with
     `process.exit(1)`, which drops its own unflushed `=== summary ===` and
     `::error::` lines, so the CI log NEVER names the failing unit and the
     check run's output fields are empty. Reproduce locally instead:
     `node .github/scripts/run-workspace-checks.mjs`.
   - `tests.yml` "Run tests": `runs-on: ubuntu-latest`, timeout 120,
-    `HERMES_TEST_WORKERS: 8` (upstream: 96-core, 30, 96)
+    `HERMES_TEST_WORKERS: 4` (upstream: 96-core, 30, 96). Was 8 from
+    2026-08-22 until PR #92 (2026-09-06, user-approved). On the 4-vCPU
+    runner, 8 is 2x oversubscription, which upstream's own comment on
+    that line measures against ("one worker for each core wins ...
+    workers above the core count only add contention"). PR #92's first
+    two attempts each lost a DIFFERENT upstream-owned, byte-identical
+    timing test: two in `tests/agent/test_compression_worker_isolation_76354.py`
+    (1s thread-start budgets under a 50ms/100ms timeout regime), then
+    `tests/tools/test_delegate_timeout_cleanup.py` (the fake child gives
+    the parent 2s to finish teardown). All pass in isolation; the CI log
+    showed the delegate test taking 6.08s where it takes 1.95s unloaded.
+    A local 6-run replay of the 16 compression/delegate files at -j 8 and
+    -j 4 on a 4-core box did NOT reproduce, so the change rests on
+    upstream's measurement plus that timing evidence, not on a local
+    repro. Wall time at 8 was 34 min of the 120-min timeout; measure it
+    at 4 before touching either number again.
   - `tests-os.yml` Windows matrix row: `runner: windows-latest`
   - `rust-tests.yml`: `runs-on: ubuntu-latest`
   - `nix.yml` flake-check job: `runs-on: ubuntu-latest`
