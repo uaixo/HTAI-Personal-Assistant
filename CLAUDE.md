@@ -315,6 +315,28 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     never run on this fork.
   If the consolidated Python suite overruns 120 min on the 4-core runner,
   ask the user before escalating (fallback: restore a sharded matrix).
+- **Plugin-catalog CI carve-out (user-approved 2026-09-10, PR for the
+  2026-09-10 sync)**: `.github/workflows/plugin-catalog-ci.yml` arrived with
+  upstream's plugin catalog. It fires on any PR touching `plugin-catalog/**`
+  and upstream ships it UNGATED, unlike `docker.yml`. Its
+  `pinned-source-validate` job clones each changed entry's repo at its pinned
+  sha and runs `hermes plugins validate`, which does NOT merely parse the
+  manifest: `hermes_cli/plugin_validate.py` calls
+  `spec.loader.exec_module(module)` on the plugin inside a scratch subprocess
+  (`HERMES_HOME` redirected, with a timeout). That executes code from
+  third-party accounts on this fork's runners — at the time of the carve-out,
+  8 entries across 6 individual (non-NousResearch) accounts. The sync that
+  introduced the catalog added all 11 entry files at once, so the lane fires
+  on the sync PR itself.
+  The fork never admits entries to upstream's catalog, so the lane has no
+  purpose here. BOTH jobs (`structural` and `pinned-source-validate`) carry
+  `if: github.repository == 'NousResearch/hermes-agent'`, the same gate
+  `docker.yml` already uses. **Re-assert after every upstream sync**; on
+  conflict keep upstream's version of the workflow and re-add the two `if:`
+  lines. Sweep: `grep -n 'github.repository' .github/workflows/plugin-catalog-ci.yml`
+  must return 2. Note the permissions are only `contents: read` and no secrets
+  are referenced, so the concern is runner-side code execution, not credential
+  exposure — do not describe it as a secrets risk.
 - **Compression de-flake carve-out (user-approved 2026-08-29, PR #82)** —
   previously undocumented, recorded 2026-09-03: `tests/agent/
   test_compression_review_76354.py` diverges from upstream in the S3

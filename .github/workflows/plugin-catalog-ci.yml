@@ -20,6 +20,13 @@ permissions:
 
 jobs:
   structural:
+    # Fork carve-out (uaixo/HTAI-Personal-Assistant, user-approved 2026-09-10):
+    # this lane clones third-party plugin repos and `hermes plugins validate`
+    # imports each one (plugin_validate.py calls spec.loader.exec_module in a
+    # scratch subprocess), so it executes code from accounts outside this repo.
+    # The fork never admits entries to upstream's catalog, so the lane has no
+    # purpose here. Gated the same way docker.yml's jobs already are.
+    if: github.repository == 'NousResearch/hermes-agent'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -42,6 +49,13 @@ jobs:
           python3 scripts/validate_plugin_catalog.py plugin-catalog/
 
   pinned-source-validate:
+    # Fork carve-out (uaixo/HTAI-Personal-Assistant, user-approved 2026-09-10):
+    # this lane clones third-party plugin repos and `hermes plugins validate`
+    # imports each one (plugin_validate.py calls spec.loader.exec_module in a
+    # scratch subprocess), so it executes code from accounts outside this repo.
+    # The fork never admits entries to upstream's catalog, so the lane has no
+    # purpose here. Gated the same way docker.yml's jobs already are.
+    if: github.repository == 'NousResearch/hermes-agent'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
