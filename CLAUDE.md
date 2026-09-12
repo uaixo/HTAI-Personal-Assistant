@@ -215,16 +215,27 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     (OAuth ticket error message; the test pinning it matches only the
     unbranded half of the sentence). On upstream-sync conflicts, keep
     upstream's sentence and re-apply the product name.
-    **That grep should return EXACTLY 2 hits, not 0 (verified 2026-09-03).**
-    `src/app/settings/model-settings.test.tsx` and
-    `src/lib/code-skew-error.test.ts` each quote a Python backend 503 detail
-    verbatim, emitted by `hermes_cli/web_server_config.py` ("…use Restart
-    backend in Hermes Desktop, or quit and reopen the app"; it lived in
-    `web_server.py` until the Sep 2026 decomposition). That module is
-    upstream-owned and outside this rebrand carve-out, so rebranding the
-    fixtures would make them assert a string the backend never sends. Leave
-    them. Treat >2 hits as real drift and 0 hits as a sign someone
-    "fixed" these two — check before celebrating.
+    **That grep should return EXACTLY 3 hits, not 0 (2 recorded 2026-09-03,
+    a third added 2026-09-12).** All three are recorded exceptions that must
+    NOT be rebranded; treat >3 hits as real drift, and treat a lower count as
+    a sign someone "fixed" one of them — check before celebrating.
+    1. `src/app/settings/model-settings.test.tsx` and
+    2. `src/lib/code-skew-error.test.ts` — each quotes a Python backend 503
+       detail verbatim, emitted by `hermes_cli/web_server_config.py` ("…use
+       Restart backend in Hermes Desktop, or quit and reopen the app"; it
+       lived in `web_server.py` until the Sep 2026 decomposition). That module
+       is upstream-owned and outside this rebrand carve-out, so rebranding the
+       fixtures would make them assert a string the backend never sends.
+    3. `src/plugins/radio/README.md` ("Bundled Hermes Desktop plugin") —
+       arrived with upstream's radio plugin in the 2026-09-12 sync (PR #97).
+       It is developer documentation, not display copy: nothing in
+       `apps/desktop/src` or `apps/desktop/electron` reads or renders a plugin
+       README, so the string never reaches a user. The recorded sweep is
+       scoped to text the app displays, and rebranding a doc would widen the
+       carve-out to a new file for no user-visible gain. User-approved as an
+       exception 2026-09-12. The same reasoning applies to any future plugin
+       README upstream adds — but each one is a NEW divergence decision, so
+       add it here rather than assuming it is covered.
     **Known blind spot — LOCALIZED product names are invisible to this grep
     (verified 2026-09-03, NOT yet approved to fix).** The sweep matches only
     the ASCII string "Hermes Desktop", so localized product-name forms slip
