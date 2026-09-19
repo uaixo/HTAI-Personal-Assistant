@@ -118,33 +118,24 @@ def test_quickstart_refuses_when_nothing_fits(client, monkeypatch):
     assert "Local Models" in r.json()["detail"]
 
 
-def _fits_any_catalog_model(monkeypatch):
-    """Make the machine large enough for the smallest catalog entry.
+@pytest.fixture
+def capable_hardware(monkeypatch):
+    """Success-path orchestration tests need a model to fit, independent of host load."""
+    from hermes_cli.local_runtime import hardware
+    from hermes_cli.local_runtime.estimator import HardwareBudget
 
-    Fork carve-out: the quickstart route calls probe_budget() and 409s with
-    "no catalog model fits this machine" when nothing fits. The smallest
-    catalog entry needs 16.5 GB; upstream runs this suite on a 377 GB runner
-    so a variant always fits there, but this fork's standard runner offers
-    ~13.5 GB usable and every entry is rejected. The test stubs downloads,
-    the runtime install and the state endpoint but not the hardware probe,
-    so it reads the real box. Pin the budget instead of the runner.
-    """
-    from hermes_cli.local_runtime.hardware import HardwareBudget
-
-    monkeypatch.setattr(
-        "hermes_cli.local_runtime.hardware.probe_budget",
-        lambda planning=False: HardwareBudget(
-            usable_vram_bytes=64 * 1024 ** 3,
-            total_device_bytes=80 * 1024 ** 3,
-            ram_available_bytes=0,
-            uma=True))
+    gib = 1 << 30
+    budget = HardwareBudget(
+        usable_vram_bytes=64 * gib, total_device_bytes=64 * gib,
+        ram_available_bytes=128 * gib, uma=False,
+    )
+    monkeypatch.setattr(hardware, "probe_budget", lambda **kw: budget)
 
 
-def test_quickstart_runs_all_three_legs(client, monkeypatch, tmp_path):
+def test_quickstart_runs_all_three_legs(client, capable_hardware, monkeypatch, tmp_path):
     """Fresh machine: install runtime -> download recommended -> activate.
     Each leg is asserted by its observable call, in order."""
     calls: list[str] = []
-    _fits_any_catalog_model(monkeypatch)
 
     # Supply the same supported backend to preflight and the stubbed install;
     # host auto-detection may select CUDA without a published Linux archive.
@@ -202,11 +193,10 @@ def test_quickstart_runs_all_three_legs(client, monkeypatch, tmp_path):
     assert load_config()["local_runtime"]["enabled"] is True
 
 
-def test_quickstart_skips_satisfied_legs(client, monkeypatch):
+def test_quickstart_skips_satisfied_legs(client, capable_hardware, monkeypatch):
     """Runtime present and model already staged: the response says so and
     the job goes straight to activation."""
     calls: list[str] = []
-    _fits_any_catalog_model(monkeypatch)
 
     monkeypatch.setattr(
         "hermes_cli.local_runtime.binaries.installed_tags", lambda: ["b10362"])
