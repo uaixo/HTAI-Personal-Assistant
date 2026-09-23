@@ -16,8 +16,12 @@ name: CI
 
 on:
   pull_request:
+  # Fork note (uaixo/HTAI-Personal-Assistant): ``NousAI-Assistant`` is this
+  # fork's product branch and upstream syncs land on it directly, not through
+  # ``main``. Without it listed here a sync merge runs no workflow at all, so
+  # it needs the same post-merge gate ``main`` has.
   push:
-    branches: [main]
+    branches: [main, NousAI-Assistant]
 
 permissions:
   contents: read
