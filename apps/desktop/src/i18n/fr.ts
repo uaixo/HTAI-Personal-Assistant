@@ -403,7 +403,7 @@ export const fr = defineLocale({
       "Ce chemin n'est pas sur cet ordinateur : il se trouve sur la machine du backend. Utilisez « Afficher dans l'arborescence »."
   },
   boot: {
-    ready: 'Hermes Desktop est prêt',
+    ready: 'NousAI Desktop est prêt',
     desktopBootFailedWithMessage: message => `Échec du démarrage : ${message}`,
     steps: {
       connectingGateway: 'Connexion au gateway desktop',
@@ -411,7 +411,7 @@ export const fr = defineLocale({
       loadingSessions: 'Chargement des sessions récentes',
       retryingRemoteBackend: 'Reconnexion au backend Hermes distant…',
       startingDesktopConnection: 'Démarrage de la connexion desktop',
-      startingHermesDesktop: 'Démarrage de Hermes Desktop…'
+      startingHermesDesktop: 'Démarrage de NousAI Desktop…'
     },
     errors: {
       backgroundExited: "Le processus en arrière-plan de Hermes s'est arrêté.",
@@ -518,7 +518,7 @@ export const fr = defineLocale({
         "Hermes n'a pas pu enregistrer dans son dossier de données. Ouvrez Maintenance pour le vérifier et le réparer.",
       gatewayAuthFailed: "Échec de l'authentification du gateway — vérifiez API_SERVER_KEY.",
       methodNotAllowed:
-        'Le backend du desktop a rejeté cette requête (405 Method Not Allowed). Essayez de redémarrer Hermes Desktop.',
+        'Le backend du desktop a rejeté cette requête (405 Method Not Allowed). Essayez de redémarrer NousAI Desktop.',
       microphonePermission: "L'autorisation du microphone a été refusée.",
       openaiRejectedApiKey: 'OpenAI a rejeté la clé API.',
       openaiTtsNeedsKey: 'TTS OpenAI nécessite VOICE_TOOLS_OPENAI_KEY ou OPENAI_API_KEY.',
@@ -1058,7 +1058,7 @@ export const fr = defineLocale({
       advanced: 'Avancé'
     },
     searchPlaceholder: {
-      about: 'À propos de Hermes Desktop',
+      about: 'À propos de NousAI Desktop',
       config: 'Rechercher dans les paramètres...',
       gateway: 'Connexion au gateway...',
       keys: 'Rechercher des clés API...',
@@ -1609,7 +1609,7 @@ export const fr = defineLocale({
       driverHealth: 'État du pilote'
     },
     about: {
-      heading: 'Hermes Desktop',
+      heading: 'NousAI Desktop',
       version: value => `Version ${value}`,
       versionUnavailable: 'Version indisponible',
       bundleOutOfSync: "Version de l'application obsolète",
@@ -1938,7 +1938,7 @@ export const fr = defineLocale({
       enterUrlFirst: "Saisissez d'abord une URL distante.",
       restartingTitle: 'Reconnexion du gateway',
       savedTitle: 'Paramètres du gateway enregistrés',
-      restartingMessage: 'Hermes Desktop va se reconnecter avec les paramètres enregistrés — le shell reste ouvert.',
+      restartingMessage: 'NousAI Desktop va se reconnecter avec les paramètres enregistrés — le shell reste ouvert.',
       savedMessage: 'Enregistré pour le prochain redémarrage.',
       connectedTo: (baseUrl, version) => `Connecté à ${baseUrl}${version ? ` · Hermes ${version}` : ''}`,
       reachableTitle: 'Gateway distant accessible',
@@ -1984,7 +1984,7 @@ export const fr = defineLocale({
       sshErrNotInstalled:
         "Hermes n'est pas installé sur l'hôte distant. Installez-le là-bas (curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh) ou définissez le chemin Hermes.",
       sshErrPlatform:
-        'Plateforme distante non prise en charge. Le mode SSH de Hermes Desktop supporte les hôtes distants Linux, macOS et Windows.',
+        'Plateforme distante non prise en charge. Le mode SSH de NousAI Desktop supporte les hôtes distants Linux, macOS et Windows.',
       sshErrTimeout: "Expiration de la connexion SSH. L'hôte peut être inaccessible ou en veille.",
       sshErrUpdateRequired: "Mettez à jour Hermes sur l'hôte distant avant de vous connecter avec Desktop SSH.",
       sshErrUnknown: 'Échec de la connexion SSH.'
@@ -3114,7 +3114,7 @@ export const fr = defineLocale({
       },
       settings: {
         title: 'Paramètres',
-        detail: 'Configurer Hermes Desktop'
+        detail: 'Configurer NousAI Desktop'
       },
       capabilities: {
         title: 'Capacités',
@@ -4649,7 +4649,7 @@ export const fr = defineLocale({
     viewDocs: "Voir la documentation d'installation",
     installTo: 'Sera installé dans',
     retryAfterRun: "Je l'ai exécuté — réessayer",
-    setupChoiceTitle: 'Configurer Hermes Desktop',
+    setupChoiceTitle: 'Configurer NousAI Desktop',
     setupChoiceDesc:
       'Connectez cette application à un gateway Hermes que vous exécutez déjà, ou installez Hermes localement sur cet ordinateur.',
     connectExistingTitle: 'Se connecter à un Hermes existant',
@@ -4658,10 +4658,10 @@ export const fr = defineLocale({
       'Utilisez un backend distant avec un jeton de session ou une connexion par navigateur. Aucune installation locale ne démarrera.',
     installLocalTitle: 'Installer Hermes localement',
     installLocalDesc: 'Téléchargez Hermes, créez son environnement Python et exécutez le backend sur cet ordinateur.',
-    localStartUnavailable: "L'installation locale n'a pas pu démarrer. Redémarrez Hermes Desktop et réessayez.",
+    localStartUnavailable: "L'installation locale n'a pas pu démarrer. Redémarrez NousAI Desktop et réessayez.",
     remoteSetupTitle: 'Se connecter à un Hermes existant',
     remoteSetupDesc:
-      "Entrez l'URL du gateway. Hermes Desktop détectera s'il a besoin d'un jeton ou d'une connexion par navigateur.",
+      "Entrez l'URL du gateway. NousAI Desktop détectera s'il a besoin d'un jeton ou d'une connexion par navigateur.",
     remoteUrlTitle: 'URL du gateway',
     remoteUrlDesc: "Utilisez l'URL de base du gateway Hermes, y compris https:// pour les connexions distantes.",
     remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
@@ -4966,7 +4966,7 @@ export const fr = defineLocale({
       update: 'mise à jour',
       updateInProgress: 'Mise à jour en cours',
       commitsBehind: (count, branch) => `${count} commit${count === 1 ? '' : 's'} en retard sur ${branch}`,
-      desktopVersion: version => `Hermes Desktop v${version}`,
+      desktopVersion: version => `NousAI Desktop v${version}`,
       backendVersion: version => `Backend v${version}`,
       clientLabel: version => `client v${version}`,
       connectionSsh: host => `SSH : ${host}`,
@@ -5924,8 +5924,8 @@ export const fr = defineLocale({
     sessionExportFailed: "Impossible d'exporter la session",
     imageSaved: 'Image enregistrée',
     downloadStarted: 'Téléchargement démarré',
-    restartToUseSaveImage: "Redémarrez Hermes Desktop pour utiliser Enregistrer l'image.",
-    restartToSaveImages: 'Redémarrez Hermes Desktop pour enregistrer les images',
+    restartToUseSaveImage: "Redémarrez NousAI Desktop pour utiliser Enregistrer l'image.",
+    restartToSaveImages: 'Redémarrez NousAI Desktop pour enregistrer les images',
     imageDownloadFailed: "Échec du téléchargement de l'image",
     openImage: "Ouvrir l'image",
     downloadImage: "Télécharger l'image",
