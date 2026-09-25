@@ -68,6 +68,52 @@ Land session work fully automatically — the user does not want to touch PRs:
 If repo Settings → Pull Requests → "Allow auto-merge" gets enabled, arm
 auto-merge (squash) at PR creation instead of watch-and-merge.
 
+### Dropped `pull_request` events, and the `BuildFailed` red herring
+**(learned 2026-09-25, PR #109 — cost ~30 min twice in one session)**
+
+Symptom: a push lands (`git push` reports the ref moved), but **no `ci.yaml`
+run is created for the new head**. The Actions tab instead shows a run with a
+blank name, `(Unknown event)`, `path: BuildFailed`, `conclusion:
+startup_failure`. `BuildFailed` is a synthetic pseudo-workflow GitHub creates
+when it will not build a workflow graph; it names no file, so it reads exactly
+like "your workflow edit is broken" when it usually is not.
+
+Neither re-run endpoint works on it — both return **403 "This workflow run
+cannot be retried"**, because a startup-failure run contains zero jobs. The
+UI's "Re-run all jobs" hits the same endpoints, so it is not worth a click.
+
+Diagnose in this order, cheapest first, and do NOT guess (this session guessed
+wrong in both directions before measuring):
+
+1. **Is it your workflow edit?** Parse-diff the file against the last sha that
+   built, so comments drop out and only semantics remain:
+   `git show <good-sha>:.github/workflows/X.yml` vs `HEAD:...`, `yaml.safe_load`
+   both, and diff the structures. A scalar or comment change cannot break the
+   graph builder.
+2. **Is the PR's merge ref computable?** Workflows build from
+   `refs/pull/<n>/merge`, so a merge conflict makes the graph unbuildable.
+   `git fetch origin <base>` then
+   `git merge-tree --write-tree origin/<base> HEAD` — exit 0 means clean.
+3. **Is Actions down?** `githubstatus.com` is BLOCKED by this environment's
+   egress proxy (403 CONNECT, via both WebFetch and curl), so ask the user.
+   Cheaper proxy: list the repo's recent runs with no branch filter — if a
+   scheduled or `main` run was created and completed after the failure, the
+   platform is fine and "just wait" is the WRONG advice.
+4. **Decisive probe.** `ci.yaml` declares `workflow_dispatch`, so dispatch it
+   on the PR branch. If the run is created with a populated
+   `referenced_workflows` list resolving every workflow at your sha, the files
+   are VALID and the `pull_request` event was simply dropped. This is not one
+   of the forbidden CI-kicking tricks — the workflow offers the trigger.
+
+Recovery once the files are cleared: only a fresh `synchronize` produces the
+PR's required check runs, and that needs a REAL commit. `ready_for_review`
+does NOT work — `ci.yaml` uses a bare `on: pull_request:`, whose default types
+are `[opened, synchronize, reopened]`. Empty commits, close/reopen, and draft
+toggling stay forbidden. Keep a `workflow_dispatch` run alive as a hedge
+rather than cancelling it: it validates the same tree, and concurrent runs do
+NOT destabilise the timing-sensitive lanes (that flakiness is workers within
+one job, not jobs across runners).
+
 ## Executing an upstream sync (PRs #13/#16/#18/#19 precedent)
 
 1. Fetch both sides (`git fetch origin NousAI-Assistant`; fetch upstream
