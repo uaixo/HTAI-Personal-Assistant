@@ -476,7 +476,43 @@ one job, not jobs across runners).
     a cure: it widens the timing margin without removing the races, and the
     durable fix is still sharding or gating the lane. **Re-assert after every
     sync**; sweep: `grep -n HERMES_TEST_WORKERS .github/workflows/tests.yml`
-    (expect `test`=4, `e2e`=2, `e2e-upgrade`=4).
+    (expect `test`=4, `e2e`=1, `e2e-upgrade`=4).
+    **SUPERSEDED the same day — `workers: 2` was NOT enough.** A fourth run
+    lost a fourth distinct upstream test,
+    `tests/e2e/core/providers/test_native_codex_app_server_faults.py`
+    (the app-server's stderr tail lost the race with teardown, so
+    `CRASH-MARKER-77` never reached the output while the crash itself was
+    surfaced correctly). Four runs, four different byte-identical upstream
+    tests, each passing in isolation: the lane is not stabilisable by tuning
+    concurrency on a 4-vCPU runner. The resolution is the shard carve-out
+    below; do not try a third worker number.
+    **Shard carve-out for `e2e` (user-approved 2026-09-25, PR #109)**: the
+    lane is a 3-way `matrix.slice` with `HERMES_TEST_SLICE: "<i>/3"` and
+    `HERMES_TEST_WORKERS: 1`. Upstream's own comment on the `test` job says
+    why this shape rather than a novel divergence: "Slicing existed to spread
+    the suite over 4-core runners", dropped only because 96 cores cleared the
+    single-file floor — and this fork IS on 4-core runners. `--slice` is
+    first-class in `scripts/run_tests_parallel.py` (LPT, 1-indexed, applied
+    AFTER file selection so the lane's explicit `find` list is what gets
+    split; `HERMES_TEST_SLICE` is passed through by `scripts/run_tests.sh`).
+    Sharding is NOT itself the fix — per-runner contention is set by
+    `HERMES_TEST_WORKERS`, not the shard count. It buys the ability to run
+    `workers: 1` (zero intra-job contention, one tree on the whole box):
+    serial on one runner is ~83 min against the 90 min budget, whereas three
+    shards make the makespan ~43 min.
+    Know two things when touching this: (1) the split is effectively BLIND —
+    only 5 of the 90 files in this lane have `test_durations.json` entries, so
+    LPT falls back to its 2.0 s default and distributes the rest evenly by
+    COUNT (33/28/29), which maps onto real times as 22.3 / 17.8 / 42.8 min,
+    the last being whichever shard draws the unsplittable 1487 s cron-soak
+    file; (2) `HERMES_TEST_FILE_RETRIES` stays **0** — upstream's comment
+    explains why and it is right: this lane's torture-chamber and
+    exactly-once suites are RACE DETECTORS, and a corruption that passes on
+    retry is still a corruption. Three of the four failures above were race
+    detectors (kanban exactly-once, tenancy routing leak, codex crash
+    surfacing), so enabling retries would launder exactly the signal the lane
+    exists to produce. **Re-assert after every sync**; sweep:
+    `grep -n 'HERMES_TEST_SLICE\|matrix' .github/workflows/tests.yml`.
   - `e2e-desktop-core.yml` (arrived 2026-09-25, upstream
     `ubuntu-latest-32-core`): `runs-on: ubuntu-latest`, timeout 30 -> 90.
     Called by `ci.yaml` and REQUIRED, so it cannot simply be left queueing.

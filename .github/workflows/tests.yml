@@ -136,6 +136,48 @@ jobs:
   e2e:
     # The core suites spawn real serve / gateway / tui_gateway / MCP / SQLite
     # writer processes per test; a 4-vCPU runner serialises them into timeouts.
+    #
+    # Fork carve-out (uaixo/HTAI-Personal-Assistant): SHARDED, and upstream's
+    # own comment on the `test` job above says why this is the right shape
+    # here rather than a novel divergence -- "Slicing existed to spread the
+    # suite over 4-core runners", dropped only because a 96-core runner
+    # cleared the single-file floor. This fork IS on 4-core runners.
+    #
+    # Sharding is not itself the fix: each job still runs
+    # HERMES_TEST_WORKERS trees at once, so per-runner contention is set by
+    # that, not by the shard count. What sharding buys is making workers=1
+    # affordable. Serial on ONE runner is ~4971 s of subprocess wall (the
+    # figure the lane itself reported at parallelism 3) = ~83 min against a
+    # 90 min budget -- too tight. Split three ways it fits with headroom.
+    #
+    # NOTE the split here is effectively BLIND, not LPT-balanced: only 5 of
+    # the 90 files in this lane have an entry in test_durations.json, so
+    # _compute_lpt_slices falls back to its 2.0 s default for the other 85
+    # and distributes them evenly BY COUNT (33/28/29). Mapping that split
+    # onto the per-file wall times the lane last reported gives 22.3 / 17.8 /
+    # 42.8 min -- the 42.8 min shard is the one that drew the 1487 s
+    # cron-soak file, which cannot be split further. So the makespan is
+    # ~43 min against the 90 min budget, and it is a CONSERVATIVE estimate:
+    # those per-file times were measured under 3-way contention, which PR #92
+    # measured as inflating per-file wall ~2.4x, so each file should be
+    # faster at workers=1. If the duration cache ever gains real entries for
+    # this lane the balance improves on its own; nothing here depends on it.
+    #
+    # The point of workers=1 is ZERO intra-job contention -- one process tree
+    # gets the whole 4-core box, the closest this fork gets to the conditions
+    # upstream's 32-core runner provides.
+    #
+    # Why this and not a retry or a gate: four consecutive runs each lost a
+    # DIFFERENT upstream-owned, byte-identical test, and three of them are
+    # race detectors (kanban exactly-once, tenancy routing leak, codex crash
+    # surfacing). HERMES_TEST_FILE_RETRIES stays 0 for the reason upstream
+    # gives below -- a corruption that passes on retry is still a corruption,
+    # so retrying would launder the signal this lane exists to produce.
+    strategy:
+      fail-fast: false
+      matrix:
+        slice: [1, 2, 3]
+    name: e2e (shard ${{ matrix.slice }}/3)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -214,7 +256,11 @@ jobs:
           # "Total subprocess CPU-wall: 4970.7s (runner wall: 1736.0s,
           # parallelism: 3x)", so at 2 the lane costs ~2485 s -- floored by the
           # 1487 s soak file -- against the 90 min budget, roughly +12 min.
-          HERMES_TEST_WORKERS: "2"
+          # One process tree at a time: the shard matrix above pays for this.
+          HERMES_TEST_WORKERS: "1"
+          # LPT-balanced shard selection, applied after file selection, so the
+          # explicit find(1) list below is what gets split. 1-indexed.
+          HERMES_TEST_SLICE: "${{ matrix.slice }}/3"
           # Multi-process episodes (torture chamber, compaction kill -9,
           # gateway liveness, delivery exactly-once through a real gateway,
           # the cron virtual-clock soak) legitimately run past the 300 s default.
