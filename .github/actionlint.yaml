@@ -8,3 +8,7 @@ self-hosted-runner:
     - ubuntu-latest-32-arm-core
     - windows-latest-32-core
     - windows-latest-32-arm-core
+    # Fork carve-out (uaixo/HTAI-Personal-Assistant): this fork maps upstream's
+    # arm64 Windows lanes onto GitHub's standard windows-11-arm runner, which
+    # actionlint's built-in catalog does not yet know.
+    - windows-11-arm

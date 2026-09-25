@@ -160,7 +160,13 @@ jobs:
         env:
           # These files spawn nested PowerShell trees. CPU-count parallelism
           # starves cold child startup before the fixture's idle deadline.
-          HERMES_TEST_WORKERS: ${{ matrix.marker == 'windows' && (runner.arch == 'ARM64' && '2' || '8') || '' }}
+          # Fork carve-out (uaixo/HTAI-Personal-Assistant): upstream's '8' is
+          # sized for windows-latest-32-core. This fork runs the x64 Windows
+          # row on a 4-vCPU windows-latest, where 8 is 2x oversubscription --
+          # the same regime PR #92 measured on Linux (per-file wall inflated
+          # ~2.4x), which is what breaks wall-clock-budgeted tests. ARM64
+          # keeps upstream's '2'; it is already below the core count.
+          HERMES_TEST_WORKERS: ${{ matrix.marker == 'windows' && (runner.arch == 'ARM64' && '2' || '4') || '' }}
           # Belt-and-suspenders with tests/conftest.py's env blanking: no
           # test may reach a real provider API.
           OPENROUTER_API_KEY: ''
@@ -204,7 +210,9 @@ jobs:
           scripts/run_tests.sh tests/e2e/core/windows/ -- \
             -m "platforms and integration" -v --tb=short -rA
         env:
-          HERMES_TEST_WORKERS: '6'
+          # Fork carve-out: 6 is 1.5x oversubscription on the 4-vCPU
+          # windows-latest this fork runs (upstream: windows-latest-32-core).
+          HERMES_TEST_WORKERS: '4'
           HERMES_TEST_FILE_TIMEOUT: '900'
           HERMES_TEST_FILE_RETRIES: '0'
           OPENROUTER_API_KEY: ''

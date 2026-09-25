@@ -374,6 +374,25 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     `windows-latest-32-core`; the fork runs it on `windows-latest` and keeps
     upstream's 25-minute budget, because upstream's own comment on that job
     measures the 4-vCPU image at 153-171 s for the suite step.
+  - **Windows worker counts (learned 2026-09-25, PR #109)**: `tests-os.yml`
+    sizes `HERMES_TEST_WORKERS` for upstream's 32-core Windows runners — `8`
+    on the x64 `platforms` row and `6` on the new `Windows E2E (real
+    processes)` job. On this fork's 4-vCPU `windows-latest` those are 2x and
+    1.5x oversubscription, the exact regime PR #92 measured on Linux
+    (per-file wall inflated ~2.4x). Both are `4` here. MEASURED before the
+    change on PR #109's dispatch run: five failures across the two Windows
+    lanes, every one wall-clock starvation and none a logic error —
+    `tests/pm/test_windows_build_deps.py` SIGKILL'd at the 300 s file
+    timeout, `test_desktop_update_windows_timestamp.py` PowerShell timing out
+    at 60 s, `test_local_runtime_processes.py` x2 reading a spawned process
+    as `running` where it must be `stopped`, and the Windows E2E
+    `test_serve_tree_kill_leaves_no_orphans_and_reboots` losing a `taskkill
+    /T /F` race (child killed, parent already gone -> rc 255). ARM64 keeps
+    upstream's `2`, already below the core count. **Re-assert after every
+    upstream sync**; sweep: `grep -n HERMES_TEST_WORKERS .github/workflows/tests-os.yml`.
+    Note the marker rename in the same sync (`windows_only` -> `windows`)
+    WIDENED what this lane selects, so it now carries more Windows files than
+    the fork has ever run — that is why these surfaced now and not earlier.
   - `tests.yml` jobs `e2e` and `e2e-upgrade` (arrived 2026-09-25, upstream
     `ubuntu-latest-32-core`): `runs-on: ubuntu-latest`, timeouts raised
     30 -> 90 and 60 -> 120. Upstream's own comment warns a 4-vCPU runner
