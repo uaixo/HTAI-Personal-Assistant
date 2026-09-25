@@ -66,7 +66,17 @@ jobs:
   detect:
     name: Detect affected areas
     runs-on: ubuntu-latest
-    timeout-minutes: 1
+    # Fork carve-out (uaixo/HTAI-Personal-Assistant): upstream's 1 minute
+    # assumes the compare API answers under its 300-file cap, so the
+    # classifier never leaves the action. This fork's 300-file guard
+    # deliberately blanks CHANGED on a big sync PR, which is what triggers
+    # classify_changes.py's pull_request_changed_files() recovery -- a
+    # `gh api pulls/<n>/files --paginate` walk. On PR #109 (4732 files,
+    # ~48 pages) the job ran 75s and was KILLED by the 1 minute budget
+    # about a second after it had set every output. A cancelled detect
+    # skips every downstream lane, and the aggregate gate then reports a
+    # VACUOUS green. Deterministic for a sync PR of this size, not a flake.
+    timeout-minutes: 5
     outputs:
       python: ${{ steps.gate-lanes.outputs.python }}
       python_prod: ${{ steps.gate-lanes.outputs.python_prod }}

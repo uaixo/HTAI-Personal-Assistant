@@ -501,7 +501,21 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   recovery**, which then re-fetches the COMPLETE list from
   `pulls/{pr}/files --paginate` (cap 3000, well above any sync here).
   Remove the guard and the classifier goes back to deciding lanes from a
-  silently truncated 300-file list — strictly worse than before. Confirmed
+  silently truncated 300-file list — strictly worse than before.
+  **Companion carve-out — `ci.yaml`'s `detect` job needs `timeout-minutes: 5`
+  (upstream: 1), learned 2026-09-25 on PR #109.** The guard and that budget
+  are structurally incompatible on a big sync: blanking `CHANGED` is what
+  triggers the `--paginate` recovery, and on 4732 files (~48 pages, after a
+  39 s checkout of this 41k-commit repo) `detect` ran 75 s and was KILLED by
+  upstream's 1-minute budget about a second AFTER it had set every output.
+  A job killed by `timeout-minutes` reports `conclusion: cancelled`, which
+  SKIPS every downstream lane — so this is a second, independent route to the
+  vacuous green recorded under the label-rerun hazard above, and it needs no
+  label to trigger. Symptom: `detect` cancelled + every lane `skipped` +
+  `Review label gate` still running (it is `if: always()`). Check the detect
+  job's log before believing a fast green: if it ends with `Set output ...`
+  lines it did the work and only lost the race. **Re-assert after every
+  upstream sync.** Confirmed
   end-to-end on PR #88: 1258 files, compare capped at 300, guard blanked
   it, and the bot then reported `ci_review_files` holding 8 real `.github/`
   paths — a populated list only possible if the recovery returned the full
