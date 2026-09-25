@@ -21,6 +21,14 @@ permissions:
 jobs:
   check:
     name: Regenerate icons + diff against committed
+    # Fork carve-out (uaixo/HTAI-Personal-Assistant): this lane regenerates
+    # apps/desktop/assets/icon.{png,ico,icns} and public/apple-touch-icon.png
+    # from upstream's nous-girl SVG masters and fails on any byte difference.
+    # Those four files are this fork's NousAI brand carve-out (user-approved
+    # 2026-07-22), so the lane is deterministically red here and has no
+    # purpose on a fork that never lands icon changes upstream. Gated with
+    # the same repository check docker.yml and plugin-catalog-ci.yml use.
+    if: github.repository == 'NousResearch/hermes-agent'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

@@ -176,14 +176,34 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     `apps/desktop/public/apple-touch-icon.png` (same artwork — electron
     main.ts APP_ICON_PATHS feeds it to app.dock.setIcon at runtime,
     overriding the bundle icns; also the onboarding provider-row logo)
-  - `apps/desktop/package.json` (productName/executableName `NousAI`, appId
-    `ai.nous.desktop`, artifactName `NousAI-…` — full-brand internals,
+  - `apps/desktop/product-identity.cjs` (productName/executableName `NousAI`,
+    appId `ai.nous.desktop`, artifactName `NousAI-…` — full-brand internals,
     user-approved 2026-07-22; only the `hermes://` protocol scheme and npm
-    `name` stay upstream)
+    `name` stay upstream). **Relocated 2026-09-25**: these values lived in
+    `apps/desktop/package.json`'s `build` block until upstream deleted that
+    block and moved the whole packaging identity into `product-identity.cjs`
+    (consumed by the new upstream-owned `electron-builder.config.cjs`, which
+    this fork does NOT diverge on). Two edits carry the carve-out:
+    `variants['']` is `{ display: 'NousAI', kebab: 'nousai', pascal: 'NousAI' }`,
+    and `appId` keeps `ai.nous.desktop` for the plain stable variant while
+    canary / commit / `light` / `bundled` builds keep upstream's
+    `com.nousresearch.*` derivation. `cliName` stays `hermes` — the CLI is
+    NOT rebranded. package.json keeps only its top-level `"productName":
+    "NousAI"` (auto-merges; upstream does not touch that line).
+    **Lockstep test**: `apps/desktop/electron/product-identity.test.ts`'s
+    `test.each` default-variant row asserts `'NousAI'` where upstream asserts
+    `'Hermes'` — re-assert after every sync, exactly like `presets.test.ts`.
+    NOTE the knock-on: `appNamePascal` `NousAI` reaches electron-builder's
+    `extraMetadata.name`, so a packaged fork build stores userData under
+    `NousAI` rather than `hermes`. That followed from the brand carve-out at
+    the relocation; flag it if a fork build's state ever looks "lost".
   - `apps/desktop/scripts/test-desktop.mjs` + `apps/desktop/e2e/fixtures.ts`
-    (packaged-app paths derive from package.json productName/executableName
-    instead of hardcoding `Hermes` — required because CI packages the app
-    and asserts those paths)
+    (packaged-app paths derive from `product-identity.cjs`'s `displayName` —
+    the same module electron-builder packs with — instead of hardcoding
+    `Hermes`; required because CI packages the app and asserts those paths.
+    They read `package.json` `build.productName` until the 2026-09-25
+    relocation above removed that field; a `?? 'Hermes'` fallback would have
+    silently un-branded them)
   - `hermes_cli/main_desktop.py` (brand-agnostic packaged desktop app lookup
     on macOS in `_desktop_packaged_executable_in` — user commit. Lived in
     `hermes_cli/main.py` until upstream's Sep 2026 decomposition moved the
@@ -215,10 +235,14 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     (OAuth ticket error message; the test pinning it matches only the
     unbranded half of the sentence). On upstream-sync conflicts, keep
     upstream's sentence and re-apply the product name.
-    **That grep should return EXACTLY 3 hits, not 0 (2 recorded 2026-09-03,
-    a third added 2026-09-12).** All three are recorded exceptions that must
-    NOT be rebranded; treat >3 hits as real drift, and treat a lower count as
-    a sign someone "fixed" one of them — check before celebrating.
+    **That grep should return EXACTLY 6 hits, not 0 (2 recorded 2026-09-03,
+    a third added 2026-09-12, three more 2026-09-25).** All six are recorded
+    exceptions that must NOT be rebranded; treat >6 hits as real drift, and
+    treat a lower count as a sign someone "fixed" one of them — check before
+    celebrating. The 2026-09-25 sync also added three upstream locales
+    (`de.ts`, `es.ts`, `fr.ts`) carrying the product name; those WERE
+    rebranded in lockstep, same as `ru` was in the 2026-09-03 sync — a new
+    locale file is display copy, not a new exception.
     1. `src/app/settings/model-settings.test.tsx` and
     2. `src/lib/code-skew-error.test.ts` — each quotes a Python backend 503
        detail verbatim, emitted by `hermes_cli/web_server_config.py` ("…use
@@ -236,6 +260,27 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
        exception 2026-09-12. The same reasoning applies to any future plugin
        README upstream adds — but each one is a NEW divergence decision, so
        add it here rather than assuming it is covered.
+    4. `src/components/update-status.tsx` and
+    5. `src/plugins/hermes-bots/screen-install.tsx` — each a CODE COMMENT
+       naming the upstream product, not display copy. Arrived with the
+       2026-09-25 sync. Same reasoning as the radio README: the recorded
+       sweep is scoped to text the app displays.
+    6. `src/lib/markdown-preprocess.reasoning.test.ts` — "Hermes Desktop" is
+       arbitrary sample prose for a `<thinking>`-stripping assertion, not a
+       product string the app renders. Arrived with the 2026-09-25 sync.
+    **These three (4-6) are recorded by this session, NOT user-approved** —
+    raise them the next time the user is in the loop; rebranding them is
+    harmless but pointless, and each is a new divergence.
+    **Known blind spot — PARTIAL-MATCH test assertions are invisible to this
+    grep (learned 2026-09-25).** The sweep greps the literal "Hermes Desktop",
+    so a test that pins only part of a rebranded string slips through:
+    upstream's new `src/components/onboarding-chat/gate.test.tsx` asserted
+    `toMatch(/Starting Hermes/)` against `en.ts`'s `startingHermesDesktop`
+    value, which this fork renders as "Starting NousAI Desktop…". The grep
+    returned nothing for it and only the vitest run caught it. After the
+    literal sweep, RUN the desktop `ui` and `electron` vitest projects before
+    trusting the rebrand — that is what turns this class of drift up.
+
     **Known blind spot — LOCALIZED product names are invisible to this grep
     (verified 2026-09-03, NOT yet approved to fix).** The sweep matches only
     the ASCII string "Hermes Desktop", so localized product-name forms slip
@@ -317,13 +362,59 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     regime that breaks 1-2s in-test budgets. Both timeouts (120 min job,
     60 min js-tests) have ample headroom; re-measure before touching
     either number again.
-  - `tests-os.yml` Windows matrix row: `runner: windows-latest`
+  - `tests-os.yml` Windows matrix row: `runner: windows-latest`. The 2026-09-25
+    sync added a SECOND Windows row (`Windows-only tests (arm64)`, upstream
+    `windows-latest-32-arm-core`) and renamed the marker `windows_only` ->
+    `windows`; the fork runs the arm64 row on **`windows-11-arm`**, GitHub's
+    standard hosted ARM64 Windows runner (upstream's own comment in
+    `desktop-bundle-smoke.yml` documents it as the slower public alternative
+    it moved OFF for speed, so the label is generally available — this is the
+    one arm64 mapping in the fork and is NOT user-approved yet). The same
+    sync also added `tests-os.yml`'s `Windows E2E (real processes)` job on
+    `windows-latest-32-core`; the fork runs it on `windows-latest` and keeps
+    upstream's 25-minute budget, because upstream's own comment on that job
+    measures the 4-vCPU image at 153-171 s for the suite step.
+  - `tests.yml` jobs `e2e` and `e2e-upgrade` (arrived 2026-09-25, upstream
+    `ubuntu-latest-32-core`): `runs-on: ubuntu-latest`, timeouts raised
+    30 -> 90 and 60 -> 120. Upstream's own comment warns a 4-vCPU runner
+    "serialises them into timeouts", so these two are the most likely lanes
+    to need a real fix (sharding, or a gate) rather than a bigger budget.
+  - `e2e-desktop-core.yml` (arrived 2026-09-25, upstream
+    `ubuntu-latest-32-core`): `runs-on: ubuntu-latest`, timeout 30 -> 90.
+    Called by `ci.yaml` and REQUIRED, so it cannot simply be left queueing.
+  - `pm-bundle.yml` (arrived 2026-09-25): fires on `pull_request` for
+    `pm/**`, which every sync PR touches. `win32-x64` -> `windows-latest`,
+    `win32-arm64` -> `windows-11-arm`. Its linux legs are already commented
+    out upstream.
+  - `windows-bundle-sdk.yml` (arrived 2026-09-25): fires on `pull_request`
+    for the MSIX tooling files. Both matrix rows -> `windows-11-arm`.
   - `rust-tests.yml`: `runs-on: ubuntu-latest`
   - `nix.yml` flake-check job: `runs-on: ubuntu-latest`
   - `e2e-desktop.yml`: `runs-on: ubuntu-latest`
   - `docker.yml` is deliberately NOT patched: its build/publish jobs are
     gated `if: github.repository == 'NousResearch/hermes-agent'` and can
-    never run on this fork.
+    never run on this fork. Same for the release/bundle workflows that only
+    run on `workflow_dispatch` / `workflow_call`
+    (`install-e2e*.yml`, `desktop-bundle-smoke.yml`,
+    `desktop-bundled-release.yml`) and `windows-venv-e2e.yml`, which fires
+    only on pushes to `wine2e/**`. The sweep's real question is not "does a
+    `-core` label appear" but "can a PR on this fork reach that job".
+- **Icon-freshness CI carve-out (recorded 2026-09-25, NOT user-approved)**:
+  upstream's new `.github/workflows/icons-freshness-check.yml` regenerates
+  every icon target from `assets/nous-girl-*.svg` via
+  `scripts/generate_icons.py` and fails on ANY byte difference. Four of its
+  targets — `apps/desktop/assets/icon.{png,ico,icns}` and
+  `apps/desktop/public/apple-touch-icon.png` — are this fork's NousAI brand
+  carve-out, so the lane is DETERMINISTICALLY red here. It is gated off with
+  the same `if: github.repository == 'NousResearch/hermes-agent'` that
+  `docker.yml` and `plugin-catalog-ci.yml` use. **Re-assert after every
+  upstream sync**; sweep:
+  `grep -c 'github.repository ==' .github/workflows/icons-freshness-check.yml`
+  must return 1. The alternative — replacing the nous-girl SVG masters with
+  NousAI artwork so the generator reproduces the committed icons — would
+  widen the carve-out well past the four desktop files (it also drives the
+  website, web and bootstrap-installer icons) and needs an explicit user
+  request.
   If the consolidated Python suite overruns 120 min on the 4-core runner,
   ask the user before escalating (fallback: restore a sharded matrix).
 - **Plugin-catalog CI carve-out (user-approved 2026-09-10, PR for the
@@ -350,7 +441,8 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   exposure — do not describe it as a secrets risk.
 - **Compression de-flake carve-out (user-approved 2026-08-29, PR #82)** —
   previously undocumented, recorded 2026-09-03: `tests/agent/
-  test_compression_review_76354.py` diverges from upstream in the S3
+  test_compression_review.py` (renamed from `test_compression_review_76354.py`
+  upstream; verified 2026-09-25) diverges from upstream in the S3
   stall-fallback test. The load-bearing part is the budget: the fork asserts
   `silence < idle * 1.5` where **upstream asserts `idle * 1.8`**. 1.8 is too
   loose to be meaningful on this fork — under the old buggy behaviour the
@@ -365,7 +457,14 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   region. The call is harmless (cheap, idempotent) but the comment claims a
   mechanism that no longer applies; fixing that comment is a separate
   follow-up, not a sync task.
-- **Runner-size test carve-out (user-approved 2026-09-03, PR #88)**:
+- **Runner-size test carve-out (user-approved 2026-09-03, PR #88) — RESOLVED
+  UPSTREAM, nothing left to re-assert.** Upstream's commit 86b809934a
+  ("test(local-models): isolate quickstart success paths from host memory")
+  now stubs `hardware.probe_budget` in the quickstart success paths itself,
+  and the fork's `_fits_any_catalog_model` helper is gone from the tree
+  (verified 2026-09-25: it is absent at the fork tip too, so it was absorbed
+  before the 2026-09-25 sync). Historical record follows; if a future sync
+  drops upstream's stub, the fix is to restore this shape:
   `tests/hermes_cli/test_local_quickstart.py` gains a
   `_fits_any_catalog_model(monkeypatch)` helper that pins `probe_budget` to a
   large budget, called from `test_quickstart_runs_all_three_legs` and
