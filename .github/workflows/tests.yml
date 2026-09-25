@@ -203,7 +203,17 @@ jobs:
           # Multi-process episodes (torture chamber, compaction kill -9,
           # gateway liveness, delivery exactly-once through a real gateway,
           # the cron virtual-clock soak) legitimately run past the 300 s default.
-          HERMES_TEST_FILE_TIMEOUT: "900"
+          # Fork carve-out (uaixo/HTAI-Personal-Assistant): upstream's 900 s is
+          # sized for its 32-core runner. On this fork's 4-vCPU ubuntu-latest
+          # the file upstream's comment names first --
+          # tests/e2e/core/delivery/test_cron_virtual_clock_soak.py -- was
+          # SIGKILL'd at exactly 900 s having completed 2 of its 6 tests, so it
+          # needs roughly 2700 s here; every other file in the lane finished
+          # under 211 s. 3600 gives headroom without threatening the 90 min job
+          # budget (the lane ran 26 min with this file killed at 15). Unlike the
+          # Windows lanes this is NOT oversubscription -- 3 workers on 4 cores is
+          # already under the core count, so the worker fix does not apply.
+          HERMES_TEST_FILE_TIMEOUT: "3600"
           # No automatic re-run of a failed file: the torture chamber and the
           # exactly-once/compaction suites are race detectors, and a rare
           # corruption that passes on retry is still a corruption.

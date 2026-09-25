@@ -398,6 +398,15 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     30 -> 90 and 60 -> 120. Upstream's own comment warns a 4-vCPU runner
     "serialises them into timeouts", so these two are the most likely lanes
     to need a real fix (sharding, or a gate) rather than a bigger budget.
+    **File-timeout carve-out for `e2e` (learned 2026-09-25, PR #109)**: that
+    lane also needs `HERMES_TEST_FILE_TIMEOUT: 3600` (upstream: 900).
+    `tests/e2e/core/delivery/test_cron_virtual_clock_soak.py` -- the file
+    upstream's own comment names first among the episodes that run past the
+    300 s default -- was SIGKILL'd at exactly 900 s having completed 2 of its
+    6 tests, so it needs ~2700 s on a 4-vCPU runner; every other file in the
+    lane finished under 211 s. This is NOT oversubscription: 3 workers on 4
+    cores is already under the core count, so the Windows worker fix does not
+    apply and the budget is the only lever. **Re-assert after every sync.**
   - `e2e-desktop-core.yml` (arrived 2026-09-25, upstream
     `ubuntu-latest-32-core`): `runs-on: ubuntu-latest`, timeout 30 -> 90.
     Called by `ci.yaml` and REQUIRED, so it cannot simply be left queueing.
