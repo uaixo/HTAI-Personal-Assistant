@@ -199,7 +199,22 @@ jobs:
           # across unrelated SQLite, tenancy, provider and terminal suites.
           # Bound the trees, not the child readiness/turn timeouts. At 4 the
           # PTY turn and serve-SIGTERM deadlines still starved intermittently.
-          HERMES_TEST_WORKERS: "3"
+          # Fork carve-out (uaixo/HTAI-Personal-Assistant): upstream's 3 is
+          # sized for its 32-core runner, where 3 process trees are ~9% of the
+          # cores; on this fork's 4-vCPU ubuntu-latest they oversubscribe it,
+          # and upstream's own note above records the lane was already marginal
+          # at 4 on its own hardware. Measured on PR #109: three consecutive
+          # runs each lost a DIFFERENT upstream-owned, byte-identical test, all
+          # timing boundaries and none a logic error -- the cron soak SIGKILL'd
+          # at the file timeout, then test_kanban_dispatcher_restart.py losing a
+          # 3 s claim-TTL race after SIGKILL, then test_routing_truth_table.py
+          # billing leg 0's async title-generation aux call to leg 1's egress
+          # window. A different test each time is the signature of an
+          # over-contended lane, not three bad tests. That run reported
+          # "Total subprocess CPU-wall: 4970.7s (runner wall: 1736.0s,
+          # parallelism: 3x)", so at 2 the lane costs ~2485 s -- floored by the
+          # 1487 s soak file -- against the 90 min budget, roughly +12 min.
+          HERMES_TEST_WORKERS: "2"
           # Multi-process episodes (torture chamber, compaction kill -9,
           # gateway liveness, delivery exactly-once through a real gateway,
           # the cron virtual-clock soak) legitimately run past the 300 s default.
@@ -210,9 +225,10 @@ jobs:
           # SIGKILL'd at exactly 900 s having completed 2 of its 6 tests, so it
           # needs roughly 2700 s here; every other file in the lane finished
           # under 211 s. 3600 gives headroom without threatening the 90 min job
-          # budget (the lane ran 26 min with this file killed at 15). Unlike the
-          # Windows lanes this is NOT oversubscription -- 3 workers on 4 cores is
-          # already under the core count, so the worker fix does not apply.
+          # budget (the lane ran 26 min with this file killed at 15). The
+          # budget is the lever for THIS file specifically: the soak is one
+          # long file rather than a contention victim, so it still needs 3600 s
+          # at the reduced worker count above.
           HERMES_TEST_FILE_TIMEOUT: "3600"
           # No automatic re-run of a failed file: the torture chamber and the
           # exactly-once/compaction suites are race detectors, and a rare

@@ -404,9 +404,33 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     upstream's own comment names first among the episodes that run past the
     300 s default -- was SIGKILL'd at exactly 900 s having completed 2 of its
     6 tests, so it needs ~2700 s on a 4-vCPU runner; every other file in the
-    lane finished under 211 s. This is NOT oversubscription: 3 workers on 4
-    cores is already under the core count, so the Windows worker fix does not
-    apply and the budget is the only lever. **Re-assert after every sync.**
+    lane finished under 211 s. The soak is one genuinely long file rather than
+    a contention victim, so it still needs 3600 s at any worker count.
+    **Worker carve-out for `e2e` (learned 2026-09-25, PR #109; CORRECTS an
+    earlier entry in this file that said the worker fix "does not apply"
+    here)**: the lane also needs `HERMES_TEST_WORKERS: 2` (upstream: 3). The
+    earlier reasoning -- "3 workers on 4 cores is already under the core
+    count" -- was WRONG, because an e2e worker is not one process: upstream's
+    own comment on that line calls it "a process tree, not one CPU-bound
+    pytest worker" (serve, gateway, tui_gateway, MCP servers, SQLite
+    writers). 3 trees are ~9% of upstream's 32 cores and oversubscribe 4.
+    Evidence: three consecutive runs on PR #109 each lost a DIFFERENT
+    upstream-owned, byte-identical test, every one a timing boundary and none
+    a logic error -- the cron soak SIGKILL'd at the file timeout, then
+    `tests/e2e/core/kanban/test_kanban_dispatcher_restart.py` losing a 3 s
+    claim-TTL race after a SIGKILL, then
+    `tests/e2e/core/tenancy/test_routing_truth_table.py` billing leg 0's
+    async title-generation aux call into leg 1's egress window (its
+    `RoutingLeak` is NOT a credential leak: the key that reached the
+    unselected host is that host's OWN key). A different test each run is the
+    signature of an over-contended lane, not three bad tests. The lane's own
+    report read `Total subprocess CPU-wall: 4970.7s (runner wall: 1736.0s,
+    parallelism: 3x)`, so 2 costs ~2485 s -- floored by the 1487 s soak file
+    -- against the 90 min budget, roughly +12 min. This is a MITIGATION, not
+    a cure: it widens the timing margin without removing the races, and the
+    durable fix is still sharding or gating the lane. **Re-assert after every
+    sync**; sweep: `grep -n HERMES_TEST_WORKERS .github/workflows/tests.yml`
+    (expect `test`=4, `e2e`=2, `e2e-upgrade`=4).
   - `e2e-desktop-core.yml` (arrived 2026-09-25, upstream
     `ubuntu-latest-32-core`): `runs-on: ubuntu-latest`, timeout 30 -> 90.
     Called by `ci.yaml` and REQUIRED, so it cannot simply be left queueing.
