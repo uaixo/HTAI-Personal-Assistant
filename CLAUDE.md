@@ -68,6 +68,52 @@ Land session work fully automatically — the user does not want to touch PRs:
 If repo Settings → Pull Requests → "Allow auto-merge" gets enabled, arm
 auto-merge (squash) at PR creation instead of watch-and-merge.
 
+### Dropped `pull_request` events, and the `BuildFailed` red herring
+**(learned 2026-09-25, PR #109 — cost ~30 min twice in one session)**
+
+Symptom: a push lands (`git push` reports the ref moved), but **no `ci.yaml`
+run is created for the new head**. The Actions tab instead shows a run with a
+blank name, `(Unknown event)`, `path: BuildFailed`, `conclusion:
+startup_failure`. `BuildFailed` is a synthetic pseudo-workflow GitHub creates
+when it will not build a workflow graph; it names no file, so it reads exactly
+like "your workflow edit is broken" when it usually is not.
+
+Neither re-run endpoint works on it — both return **403 "This workflow run
+cannot be retried"**, because a startup-failure run contains zero jobs. The
+UI's "Re-run all jobs" hits the same endpoints, so it is not worth a click.
+
+Diagnose in this order, cheapest first, and do NOT guess (this session guessed
+wrong in both directions before measuring):
+
+1. **Is it your workflow edit?** Parse-diff the file against the last sha that
+   built, so comments drop out and only semantics remain:
+   `git show <good-sha>:.github/workflows/X.yml` vs `HEAD:...`, `yaml.safe_load`
+   both, and diff the structures. A scalar or comment change cannot break the
+   graph builder.
+2. **Is the PR's merge ref computable?** Workflows build from
+   `refs/pull/<n>/merge`, so a merge conflict makes the graph unbuildable.
+   `git fetch origin <base>` then
+   `git merge-tree --write-tree origin/<base> HEAD` — exit 0 means clean.
+3. **Is Actions down?** `githubstatus.com` is BLOCKED by this environment's
+   egress proxy (403 CONNECT, via both WebFetch and curl), so ask the user.
+   Cheaper proxy: list the repo's recent runs with no branch filter — if a
+   scheduled or `main` run was created and completed after the failure, the
+   platform is fine and "just wait" is the WRONG advice.
+4. **Decisive probe.** `ci.yaml` declares `workflow_dispatch`, so dispatch it
+   on the PR branch. If the run is created with a populated
+   `referenced_workflows` list resolving every workflow at your sha, the files
+   are VALID and the `pull_request` event was simply dropped. This is not one
+   of the forbidden CI-kicking tricks — the workflow offers the trigger.
+
+Recovery once the files are cleared: only a fresh `synchronize` produces the
+PR's required check runs, and that needs a REAL commit. `ready_for_review`
+does NOT work — `ci.yaml` uses a bare `on: pull_request:`, whose default types
+are `[opened, synchronize, reopened]`. Empty commits, close/reopen, and draft
+toggling stay forbidden. Keep a `workflow_dispatch` run alive as a hedge
+rather than cancelling it: it validates the same tree, and concurrent runs do
+NOT destabilise the timing-sensitive lanes (that flakiness is workers within
+one job, not jobs across runners).
+
 ## Executing an upstream sync (PRs #13/#16/#18/#19 precedent)
 
 1. Fetch both sides (`git fetch origin NousAI-Assistant`; fetch upstream
@@ -176,14 +222,34 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     `apps/desktop/public/apple-touch-icon.png` (same artwork — electron
     main.ts APP_ICON_PATHS feeds it to app.dock.setIcon at runtime,
     overriding the bundle icns; also the onboarding provider-row logo)
-  - `apps/desktop/package.json` (productName/executableName `NousAI`, appId
-    `ai.nous.desktop`, artifactName `NousAI-…` — full-brand internals,
+  - `apps/desktop/product-identity.cjs` (productName/executableName `NousAI`,
+    appId `ai.nous.desktop`, artifactName `NousAI-…` — full-brand internals,
     user-approved 2026-07-22; only the `hermes://` protocol scheme and npm
-    `name` stay upstream)
+    `name` stay upstream). **Relocated 2026-09-25**: these values lived in
+    `apps/desktop/package.json`'s `build` block until upstream deleted that
+    block and moved the whole packaging identity into `product-identity.cjs`
+    (consumed by the new upstream-owned `electron-builder.config.cjs`, which
+    this fork does NOT diverge on). Two edits carry the carve-out:
+    `variants['']` is `{ display: 'NousAI', kebab: 'nousai', pascal: 'NousAI' }`,
+    and `appId` keeps `ai.nous.desktop` for the plain stable variant while
+    canary / commit / `light` / `bundled` builds keep upstream's
+    `com.nousresearch.*` derivation. `cliName` stays `hermes` — the CLI is
+    NOT rebranded. package.json keeps only its top-level `"productName":
+    "NousAI"` (auto-merges; upstream does not touch that line).
+    **Lockstep test**: `apps/desktop/electron/product-identity.test.ts`'s
+    `test.each` default-variant row asserts `'NousAI'` where upstream asserts
+    `'Hermes'` — re-assert after every sync, exactly like `presets.test.ts`.
+    NOTE the knock-on: `appNamePascal` `NousAI` reaches electron-builder's
+    `extraMetadata.name`, so a packaged fork build stores userData under
+    `NousAI` rather than `hermes`. That followed from the brand carve-out at
+    the relocation; flag it if a fork build's state ever looks "lost".
   - `apps/desktop/scripts/test-desktop.mjs` + `apps/desktop/e2e/fixtures.ts`
-    (packaged-app paths derive from package.json productName/executableName
-    instead of hardcoding `Hermes` — required because CI packages the app
-    and asserts those paths)
+    (packaged-app paths derive from `product-identity.cjs`'s `displayName` —
+    the same module electron-builder packs with — instead of hardcoding
+    `Hermes`; required because CI packages the app and asserts those paths.
+    They read `package.json` `build.productName` until the 2026-09-25
+    relocation above removed that field; a `?? 'Hermes'` fallback would have
+    silently un-branded them)
   - `hermes_cli/main_desktop.py` (brand-agnostic packaged desktop app lookup
     on macOS in `_desktop_packaged_executable_in` — user commit. Lived in
     `hermes_cli/main.py` until upstream's Sep 2026 decomposition moved the
@@ -215,10 +281,14 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     (OAuth ticket error message; the test pinning it matches only the
     unbranded half of the sentence). On upstream-sync conflicts, keep
     upstream's sentence and re-apply the product name.
-    **That grep should return EXACTLY 3 hits, not 0 (2 recorded 2026-09-03,
-    a third added 2026-09-12).** All three are recorded exceptions that must
-    NOT be rebranded; treat >3 hits as real drift, and treat a lower count as
-    a sign someone "fixed" one of them — check before celebrating.
+    **That grep should return EXACTLY 6 hits, not 0 (2 recorded 2026-09-03,
+    a third added 2026-09-12, three more 2026-09-25).** All six are recorded
+    exceptions that must NOT be rebranded; treat >6 hits as real drift, and
+    treat a lower count as a sign someone "fixed" one of them — check before
+    celebrating. The 2026-09-25 sync also added three upstream locales
+    (`de.ts`, `es.ts`, `fr.ts`) carrying the product name; those WERE
+    rebranded in lockstep, same as `ru` was in the 2026-09-03 sync — a new
+    locale file is display copy, not a new exception.
     1. `src/app/settings/model-settings.test.tsx` and
     2. `src/lib/code-skew-error.test.ts` — each quotes a Python backend 503
        detail verbatim, emitted by `hermes_cli/web_server_config.py` ("…use
@@ -236,6 +306,27 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
        exception 2026-09-12. The same reasoning applies to any future plugin
        README upstream adds — but each one is a NEW divergence decision, so
        add it here rather than assuming it is covered.
+    4. `src/components/update-status.tsx` and
+    5. `src/plugins/hermes-bots/screen-install.tsx` — each a CODE COMMENT
+       naming the upstream product, not display copy. Arrived with the
+       2026-09-25 sync. Same reasoning as the radio README: the recorded
+       sweep is scoped to text the app displays.
+    6. `src/lib/markdown-preprocess.reasoning.test.ts` — "Hermes Desktop" is
+       arbitrary sample prose for a `<thinking>`-stripping assertion, not a
+       product string the app renders. Arrived with the 2026-09-25 sync.
+    **These three (4-6) are recorded by this session, NOT user-approved** —
+    raise them the next time the user is in the loop; rebranding them is
+    harmless but pointless, and each is a new divergence.
+    **Known blind spot — PARTIAL-MATCH test assertions are invisible to this
+    grep (learned 2026-09-25).** The sweep greps the literal "Hermes Desktop",
+    so a test that pins only part of a rebranded string slips through:
+    upstream's new `src/components/onboarding-chat/gate.test.tsx` asserted
+    `toMatch(/Starting Hermes/)` against `en.ts`'s `startingHermesDesktop`
+    value, which this fork renders as "Starting NousAI Desktop…". The grep
+    returned nothing for it and only the vitest run caught it. After the
+    literal sweep, RUN the desktop `ui` and `electron` vitest projects before
+    trusting the rebrand — that is what turns this class of drift up.
+
     **Known blind spot — LOCALIZED product names are invisible to this grep
     (verified 2026-09-03, NOT yet approved to fix).** The sweep matches only
     the ASCII string "Hermes Desktop", so localized product-name forms slip
@@ -317,13 +408,147 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
     regime that breaks 1-2s in-test budgets. Both timeouts (120 min job,
     60 min js-tests) have ample headroom; re-measure before touching
     either number again.
-  - `tests-os.yml` Windows matrix row: `runner: windows-latest`
+  - `tests-os.yml` Windows matrix row: `runner: windows-latest`. The 2026-09-25
+    sync added a SECOND Windows row (`Windows-only tests (arm64)`, upstream
+    `windows-latest-32-arm-core`) and renamed the marker `windows_only` ->
+    `windows`; the fork runs the arm64 row on **`windows-11-arm`**, GitHub's
+    standard hosted ARM64 Windows runner (upstream's own comment in
+    `desktop-bundle-smoke.yml` documents it as the slower public alternative
+    it moved OFF for speed, so the label is generally available — this is the
+    one arm64 mapping in the fork and is NOT user-approved yet). The same
+    sync also added `tests-os.yml`'s `Windows E2E (real processes)` job on
+    `windows-latest-32-core`; the fork runs it on `windows-latest` and keeps
+    upstream's 25-minute budget, because upstream's own comment on that job
+    measures the 4-vCPU image at 153-171 s for the suite step.
+  - **Windows worker counts (learned 2026-09-25, PR #109)**: `tests-os.yml`
+    sizes `HERMES_TEST_WORKERS` for upstream's 32-core Windows runners — `8`
+    on the x64 `platforms` row and `6` on the new `Windows E2E (real
+    processes)` job. On this fork's 4-vCPU `windows-latest` those are 2x and
+    1.5x oversubscription, the exact regime PR #92 measured on Linux
+    (per-file wall inflated ~2.4x). Both are `4` here. MEASURED before the
+    change on PR #109's dispatch run: five failures across the two Windows
+    lanes, every one wall-clock starvation and none a logic error —
+    `tests/pm/test_windows_build_deps.py` SIGKILL'd at the 300 s file
+    timeout, `test_desktop_update_windows_timestamp.py` PowerShell timing out
+    at 60 s, `test_local_runtime_processes.py` x2 reading a spawned process
+    as `running` where it must be `stopped`, and the Windows E2E
+    `test_serve_tree_kill_leaves_no_orphans_and_reboots` losing a `taskkill
+    /T /F` race (child killed, parent already gone -> rc 255). ARM64 keeps
+    upstream's `2`, already below the core count. **Re-assert after every
+    upstream sync**; sweep: `grep -n HERMES_TEST_WORKERS .github/workflows/tests-os.yml`.
+    Note the marker rename in the same sync (`windows_only` -> `windows`)
+    WIDENED what this lane selects, so it now carries more Windows files than
+    the fork has ever run — that is why these surfaced now and not earlier.
+  - `tests.yml` jobs `e2e` and `e2e-upgrade` (arrived 2026-09-25, upstream
+    `ubuntu-latest-32-core`): `runs-on: ubuntu-latest`, timeouts raised
+    30 -> 90 and 60 -> 120. Upstream's own comment warns a 4-vCPU runner
+    "serialises them into timeouts", so these two are the most likely lanes
+    to need a real fix (sharding, or a gate) rather than a bigger budget.
+    **File-timeout carve-out for `e2e` (learned 2026-09-25, PR #109)**: that
+    lane also needs `HERMES_TEST_FILE_TIMEOUT: 3600` (upstream: 900).
+    `tests/e2e/core/delivery/test_cron_virtual_clock_soak.py` -- the file
+    upstream's own comment names first among the episodes that run past the
+    300 s default -- was SIGKILL'd at exactly 900 s having completed 2 of its
+    6 tests, so it needs ~2700 s on a 4-vCPU runner; every other file in the
+    lane finished under 211 s. The soak is one genuinely long file rather than
+    a contention victim, so it still needs 3600 s at any worker count.
+    **Worker carve-out for `e2e` (learned 2026-09-25, PR #109; CORRECTS an
+    earlier entry in this file that said the worker fix "does not apply"
+    here)**: the lane also needs `HERMES_TEST_WORKERS: 2` (upstream: 3). The
+    earlier reasoning -- "3 workers on 4 cores is already under the core
+    count" -- was WRONG, because an e2e worker is not one process: upstream's
+    own comment on that line calls it "a process tree, not one CPU-bound
+    pytest worker" (serve, gateway, tui_gateway, MCP servers, SQLite
+    writers). 3 trees are ~9% of upstream's 32 cores and oversubscribe 4.
+    Evidence: three consecutive runs on PR #109 each lost a DIFFERENT
+    upstream-owned, byte-identical test, every one a timing boundary and none
+    a logic error -- the cron soak SIGKILL'd at the file timeout, then
+    `tests/e2e/core/kanban/test_kanban_dispatcher_restart.py` losing a 3 s
+    claim-TTL race after a SIGKILL, then
+    `tests/e2e/core/tenancy/test_routing_truth_table.py` billing leg 0's
+    async title-generation aux call into leg 1's egress window (its
+    `RoutingLeak` is NOT a credential leak: the key that reached the
+    unselected host is that host's OWN key). A different test each run is the
+    signature of an over-contended lane, not three bad tests. The lane's own
+    report read `Total subprocess CPU-wall: 4970.7s (runner wall: 1736.0s,
+    parallelism: 3x)`, so 2 costs ~2485 s -- floored by the 1487 s soak file
+    -- against the 90 min budget, roughly +12 min. This is a MITIGATION, not
+    a cure: it widens the timing margin without removing the races, and the
+    durable fix is still sharding or gating the lane. **Re-assert after every
+    sync**; sweep: `grep -n HERMES_TEST_WORKERS .github/workflows/tests.yml`
+    (expect `test`=4, `e2e`=1, `e2e-upgrade`=4).
+    **SUPERSEDED the same day — `workers: 2` was NOT enough.** A fourth run
+    lost a fourth distinct upstream test,
+    `tests/e2e/core/providers/test_native_codex_app_server_faults.py`
+    (the app-server's stderr tail lost the race with teardown, so
+    `CRASH-MARKER-77` never reached the output while the crash itself was
+    surfaced correctly). Four runs, four different byte-identical upstream
+    tests, each passing in isolation: the lane is not stabilisable by tuning
+    concurrency on a 4-vCPU runner. The resolution is the shard carve-out
+    below; do not try a third worker number.
+    **Shard carve-out for `e2e` (user-approved 2026-09-25, PR #109)**: the
+    lane is a 3-way `matrix.slice` with `HERMES_TEST_SLICE: "<i>/3"` and
+    `HERMES_TEST_WORKERS: 1`. Upstream's own comment on the `test` job says
+    why this shape rather than a novel divergence: "Slicing existed to spread
+    the suite over 4-core runners", dropped only because 96 cores cleared the
+    single-file floor — and this fork IS on 4-core runners. `--slice` is
+    first-class in `scripts/run_tests_parallel.py` (LPT, 1-indexed, applied
+    AFTER file selection so the lane's explicit `find` list is what gets
+    split; `HERMES_TEST_SLICE` is passed through by `scripts/run_tests.sh`).
+    Sharding is NOT itself the fix — per-runner contention is set by
+    `HERMES_TEST_WORKERS`, not the shard count. It buys the ability to run
+    `workers: 1` (zero intra-job contention, one tree on the whole box):
+    serial on one runner is ~83 min against the 90 min budget, whereas three
+    shards make the makespan ~43 min.
+    Know two things when touching this: (1) the split is effectively BLIND —
+    only 5 of the 90 files in this lane have `test_durations.json` entries, so
+    LPT falls back to its 2.0 s default and distributes the rest evenly by
+    COUNT (33/28/29), which maps onto real times as 22.3 / 17.8 / 42.8 min,
+    the last being whichever shard draws the unsplittable 1487 s cron-soak
+    file; (2) `HERMES_TEST_FILE_RETRIES` stays **0** — upstream's comment
+    explains why and it is right: this lane's torture-chamber and
+    exactly-once suites are RACE DETECTORS, and a corruption that passes on
+    retry is still a corruption. Three of the four failures above were race
+    detectors (kanban exactly-once, tenancy routing leak, codex crash
+    surfacing), so enabling retries would launder exactly the signal the lane
+    exists to produce. **Re-assert after every sync**; sweep:
+    `grep -n 'HERMES_TEST_SLICE\|matrix' .github/workflows/tests.yml`.
+  - `e2e-desktop-core.yml` (arrived 2026-09-25, upstream
+    `ubuntu-latest-32-core`): `runs-on: ubuntu-latest`, timeout 30 -> 90.
+    Called by `ci.yaml` and REQUIRED, so it cannot simply be left queueing.
+  - `pm-bundle.yml` (arrived 2026-09-25): fires on `pull_request` for
+    `pm/**`, which every sync PR touches. `win32-x64` -> `windows-latest`,
+    `win32-arm64` -> `windows-11-arm`. Its linux legs are already commented
+    out upstream.
+  - `windows-bundle-sdk.yml` (arrived 2026-09-25): fires on `pull_request`
+    for the MSIX tooling files. Both matrix rows -> `windows-11-arm`.
   - `rust-tests.yml`: `runs-on: ubuntu-latest`
   - `nix.yml` flake-check job: `runs-on: ubuntu-latest`
   - `e2e-desktop.yml`: `runs-on: ubuntu-latest`
   - `docker.yml` is deliberately NOT patched: its build/publish jobs are
     gated `if: github.repository == 'NousResearch/hermes-agent'` and can
-    never run on this fork.
+    never run on this fork. Same for the release/bundle workflows that only
+    run on `workflow_dispatch` / `workflow_call`
+    (`install-e2e*.yml`, `desktop-bundle-smoke.yml`,
+    `desktop-bundled-release.yml`) and `windows-venv-e2e.yml`, which fires
+    only on pushes to `wine2e/**`. The sweep's real question is not "does a
+    `-core` label appear" but "can a PR on this fork reach that job".
+- **Icon-freshness CI carve-out (recorded 2026-09-25, NOT user-approved)**:
+  upstream's new `.github/workflows/icons-freshness-check.yml` regenerates
+  every icon target from `assets/nous-girl-*.svg` via
+  `scripts/generate_icons.py` and fails on ANY byte difference. Four of its
+  targets — `apps/desktop/assets/icon.{png,ico,icns}` and
+  `apps/desktop/public/apple-touch-icon.png` — are this fork's NousAI brand
+  carve-out, so the lane is DETERMINISTICALLY red here. It is gated off with
+  the same `if: github.repository == 'NousResearch/hermes-agent'` that
+  `docker.yml` and `plugin-catalog-ci.yml` use. **Re-assert after every
+  upstream sync**; sweep:
+  `grep -c 'github.repository ==' .github/workflows/icons-freshness-check.yml`
+  must return 1. The alternative — replacing the nous-girl SVG masters with
+  NousAI artwork so the generator reproduces the committed icons — would
+  widen the carve-out well past the four desktop files (it also drives the
+  website, web and bootstrap-installer icons) and needs an explicit user
+  request.
   If the consolidated Python suite overruns 120 min on the 4-core runner,
   ask the user before escalating (fallback: restore a sharded matrix).
 - **Plugin-catalog CI carve-out (user-approved 2026-09-10, PR for the
@@ -350,7 +575,8 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   exposure — do not describe it as a secrets risk.
 - **Compression de-flake carve-out (user-approved 2026-08-29, PR #82)** —
   previously undocumented, recorded 2026-09-03: `tests/agent/
-  test_compression_review_76354.py` diverges from upstream in the S3
+  test_compression_review.py` (renamed from `test_compression_review_76354.py`
+  upstream; verified 2026-09-25) diverges from upstream in the S3
   stall-fallback test. The load-bearing part is the budget: the fork asserts
   `silence < idle * 1.5` where **upstream asserts `idle * 1.8`**. 1.8 is too
   loose to be meaningful on this fork — under the old buggy behaviour the
@@ -365,7 +591,14 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   region. The call is harmless (cheap, idempotent) but the comment claims a
   mechanism that no longer applies; fixing that comment is a separate
   follow-up, not a sync task.
-- **Runner-size test carve-out (user-approved 2026-09-03, PR #88)**:
+- **Runner-size test carve-out (user-approved 2026-09-03, PR #88) — RESOLVED
+  UPSTREAM, nothing left to re-assert.** Upstream's commit 86b809934a
+  ("test(local-models): isolate quickstart success paths from host memory")
+  now stubs `hardware.probe_budget` in the quickstart success paths itself,
+  and the fork's `_fits_any_catalog_model` helper is gone from the tree
+  (verified 2026-09-25: it is absent at the fork tip too, so it was absorbed
+  before the 2026-09-25 sync). Historical record follows; if a future sync
+  drops upstream's stub, the fix is to restore this shape:
   `tests/hermes_cli/test_local_quickstart.py` gains a
   `_fits_any_catalog_model(monkeypatch)` helper that pins `probe_budget` to a
   large budget, called from `test_quickstart_runs_all_three_legs` and
@@ -402,7 +635,21 @@ auto-merge (squash) at PR creation instead of watch-and-merge.
   recovery**, which then re-fetches the COMPLETE list from
   `pulls/{pr}/files --paginate` (cap 3000, well above any sync here).
   Remove the guard and the classifier goes back to deciding lanes from a
-  silently truncated 300-file list — strictly worse than before. Confirmed
+  silently truncated 300-file list — strictly worse than before.
+  **Companion carve-out — `ci.yaml`'s `detect` job needs `timeout-minutes: 5`
+  (upstream: 1), learned 2026-09-25 on PR #109.** The guard and that budget
+  are structurally incompatible on a big sync: blanking `CHANGED` is what
+  triggers the `--paginate` recovery, and on 4732 files (~48 pages, after a
+  39 s checkout of this 41k-commit repo) `detect` ran 75 s and was KILLED by
+  upstream's 1-minute budget about a second AFTER it had set every output.
+  A job killed by `timeout-minutes` reports `conclusion: cancelled`, which
+  SKIPS every downstream lane — so this is a second, independent route to the
+  vacuous green recorded under the label-rerun hazard above, and it needs no
+  label to trigger. Symptom: `detect` cancelled + every lane `skipped` +
+  `Review label gate` still running (it is `if: always()`). Check the detect
+  job's log before believing a fast green: if it ends with `Set output ...`
+  lines it did the work and only lost the race. **Re-assert after every
+  upstream sync.** Confirmed
   end-to-end on PR #88: 1258 files, compare capped at 300, guard blanked
   it, and the bot then reported `ci_review_files` holding 8 real `.github/`
   paths — a populated list only possible if the recovery returned the full
