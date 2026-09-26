@@ -573,6 +573,31 @@ one job, not jobs across runners).
   must return 2. Note the permissions are only `contents: read` and no secrets
   are referenced, so the concern is runner-side code execution, not credential
   exposure — do not describe it as a secrets risk.
+- **`js-autofix.yml` DISABLED in repo settings (user-approved 2026-09-26) —
+  there is NO file change for this carve-out, so nothing in the tree shows
+  it.** Upstream's `auto-fix lint issues & formatting` workflow fires on
+  pushes to `main` (plus `workflow_dispatch`) and opens a
+  "fmt(js): npm run fix auto-fix" PR from `bot/js-autofix` against
+  `main`. On this fork that PR can never finish: with no `APP_CLIENT_ID` /
+  `APP_PRIVATE_KEY`, `get-app-token` falls back to `GITHUB_TOKEN`; GitHub does
+  not trigger workflows from `GITHUB_TOKEN` events, so `ci.yaml` never runs on
+  the PR (0 checks), auto-merge never fires, and the workflow's auto-close
+  loop gives up after ~10 minutes. Every later push to `main` then reuses the
+  open PR, so it lingers forever (PR #107, closed 2026-09-26). Merging it
+  would also make `main` drift from upstream.
+  **Why a settings switch and not a file gate**: for a `push` event GitHub runs
+  the workflow file FROM THE PUSHED COMMIT, i.e. `main`'s copy. A
+  `github.repository` gate on `NousAI-Assistant` would never be read, and
+  gating `main`'s copy breaks the `main` = upstream rule. Disabling in
+  Actions settings keeps `main` byte-identical to upstream.
+  Verify: `actions_get` / `get_workflow` on `js-autofix.yml` must report
+  `state: disabled_manually`. **Do NOT re-enable it** to "fix" a missing
+  lint lane — it is not a lane, it only generates these dead PRs. Watch for
+  upstream RENAMING the file: a new path registers as a NEW workflow in the
+  `active` state and the problem returns, so after each sync grep `.github/`
+  for `bot/js-autofix` and check that every workflow referencing it is
+  disabled. The same settings-vs-file reasoning applies to any other
+  upstream workflow that triggers only on pushes to `main`.
 - **Compression de-flake carve-out (user-approved 2026-08-29, PR #82)** —
   previously undocumented, recorded 2026-09-03: `tests/agent/
   test_compression_review.py` (renamed from `test_compression_review_76354.py`
