@@ -317,6 +317,18 @@ one job, not jobs across runners).
     **These three (4-6) are recorded by this session, NOT user-approved** —
     raise them the next time the user is in the loop; rebranding them is
     harmless but pointless, and each is a new divergence.
+    **Quit-sentinel lockstep (2026-09-27 sync).** Upstream's
+    `fix(desktop): record intentional quit sentinels as expected transitions`
+    wrapped `local-backend-lifecycle.ts`'s abort reason in
+    `markExpectedTransition(...)` and added two tests that PIN the sentence:
+    `electron/local-backend-lifecycle.test.ts` (asserts the live
+    `signal.reason.message`, so it FAILS against this fork's string) and
+    `electron/crash-forensics.test.ts` (5 self-constructed fixtures, which
+    pass either way but stop mirroring what this fork emits). Both were
+    rebranded in lockstep with the source, keeping the sweep at 6. Note the
+    source conflict itself must take BOTH sides — the fork's product name and
+    upstream's `markExpectedTransition` wrapper — because the wrapper's import
+    auto-merges in, and an "ours" resolution leaves it unused.
     **Known blind spot — PARTIAL-MATCH test assertions are invisible to this
     grep (learned 2026-09-25).** The sweep greps the literal "Hermes Desktop",
     so a test that pins only part of a rebranded string slips through:
@@ -477,6 +489,17 @@ one job, not jobs across runners).
     durable fix is still sharding or gating the lane. **Re-assert after every
     sync**; sweep: `grep -n HERMES_TEST_WORKERS .github/workflows/tests.yml`
     (expect `test`=4, `e2e`=1, `e2e-upgrade`=4).
+    **`e2e-upgrade` sharding (arrived 2026-09-27)**: upstream turned this lane
+    into a matrix fed by a new `e2e-upgrade-plan` job (one shard per suite
+    directory under `tests/e2e/core/upgrade`) and raised its workers 4 -> 6.
+    The conflict is in the job header ONLY, and resolving it "ours" is WRONG:
+    the run step below it auto-merges to upstream's sharded form and reads
+    `matrix.shard`, so a header without `needs:`/`strategy:` yields an empty
+    shard and the step's own "no test files for shard" guard exits 1. Keep
+    upstream's `name`/`needs`/`strategy` and re-apply the fork's
+    `runs-on: ubuntu-latest` + timeout 120. The workers line sits OUTSIDE the
+    conflict and is byte-identical to the merge base on this side, so git
+    takes upstream's 6 SILENTLY — re-assert 4 by hand every sync.
     **SUPERSEDED the same day — `workers: 2` was NOT enough.** A fourth run
     lost a fourth distinct upstream test,
     `tests/e2e/core/providers/test_native_codex_app_server_faults.py`
@@ -522,6 +545,23 @@ one job, not jobs across runners).
     out upstream.
   - `windows-bundle-sdk.yml` (arrived 2026-09-25): fires on `pull_request`
     for the MSIX tooling files. Both matrix rows -> `windows-11-arm`.
+  - `e2e-desktop-update.yml` (arrived 2026-09-27, upstream
+    `ubuntu-latest-32-core`): `runs-on: ubuntu-latest`, timeout 30 -> 90,
+    mirroring its sibling `e2e-desktop-core.yml`. `ci.yaml` calls it whenever
+    `detect` reports `python_prod` or `frontend`, which every sync PR trips.
+    Its shards are `continue-on-error: true` (advisory), but `all-checks-pass`
+    still lists it under `needs:`, so a job that never gets a runner leaves
+    the aggregate gate pending forever rather than merely red. **Recorded by
+    this session 2026-09-27, NOT user-approved.**
+  - `windows-install-update-e2e.yml` (arrived 2026-09-27, upstream
+    `windows-latest-32-core`): `runs-on: windows-latest`. `tests-os.yml`
+    calls it with NO `if:` gate on every Python PR, so unlike the
+    `install-e2e*.yml` family it is genuinely PR-reachable here. Upstream's
+    budget (50 min) is kept: its own comment measures ~17 min typical / 28 min
+    on a slow runner, but that is on a 32-core host and no 4-vCPU measurement
+    exists yet — re-check after the first real run on this fork and raise the
+    timeout if it starves. **Recorded by this session 2026-09-27, NOT
+    user-approved.**
   - `rust-tests.yml`: `runs-on: ubuntu-latest`
   - `nix.yml` flake-check job: `runs-on: ubuntu-latest`
   - `e2e-desktop.yml`: `runs-on: ubuntu-latest`

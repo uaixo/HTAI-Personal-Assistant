@@ -503,6 +503,12 @@ Old tool results (>200 chars) outside the protected tail are replaced with:
 This is a cheap pre-pass that saves significant tokens from verbose tool
 outputs (file contents, terminal output, search results).
 
+A tool round the model has not answered yet (compaction fired right after it ran, with or
+without `/steer` messages delivered after it) keeps its text results verbatim and its image
+results intact in the tail, so the model can use the output it requested. A round that alone
+exceeds 20% of the input budget (the context window minus the output reservation) can be
+summarized, and its older images are retired so compaction can still make room.
+
 ### Phase 2: Determine Boundaries
 
 ```
@@ -588,7 +594,8 @@ information across multiple compactions — items move from "In Progress" to "Do
 new progress is added, and obsolete information is removed.
 
 The `_previous_summary` field on the compressor instance stores the last summary
-text for this purpose.
+text for this purpose. A deterministic fallback summary is stored there too, since
+it is the handoff the transcript now carries.
 
 
 ## Before/After Example
