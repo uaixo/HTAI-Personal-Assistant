@@ -256,6 +256,24 @@ one job, not jobs across runners).
     function; relocated in PR #92, 2026-09-06. The darwin branch globs
     `mac*/*.app` and names the executable after the bundle; there must be
     0 hits for the hardcoded `mac*/Hermes.app` in this file)
+  - `hermes_cli/linux_desktop_entry.py` (one line: `APP_ID = "ai.nous.desktop"`,
+    upstream `com.nousresearch.hermes`). This is NOT cosmetic: the module's own
+    comment explains that electron-builder bakes `product-identity.cjs`'s `appId`
+    into `extraMetadata.desktopName`, Electron hands that to the compositor
+    verbatim, and GNOME links a window to a launcher by `StartupWMClass` or a
+    `<app_id>.desktop` filename — so with upstream's id here a packaged NousAI
+    launch matches NEITHER rung and lands on the placeholder icon. The fork had
+    this latent bug until upstream's new
+    `tests/hermes_cli/test_linux_desktop_entry.py::test_app_id_matches_the_desktop_build_identity`
+    (arrived in the 2026-09-27 sync) asserted the pair and went red. **Re-assert
+    after every upstream sync.** Note `DESKTOP_ENTRY_NAME` derives from `APP_ID`,
+    so a fork install that already wrote `com.nousresearch.hermes.desktop` will
+    leave that file behind; `_remove_legacy_desktop_entry` only retires
+    `hermes.desktop` and is gated on a `Name=Hermes` line, so extending it to the
+    old fork id is a SEPARATE decision, not done here. Do NOT bulk-rename the
+    other `com.nousresearch.hermes` occurrences — they are unrelated identifiers
+    (plugin-manifest extension key, macOS signing id, tccutil doc strings).
+    **Recorded by this session 2026-09-27, NOT user-approved.**
   - `apps/desktop/src/components/chat/intro.tsx` +
     `apps/desktop/src/components/chat/intro-copy.jsonl` (empty-session hero:
     WORDMARK `NOUS AI ASSISTANT`, intro copy de-Hermes'd — user-approved
@@ -317,6 +335,18 @@ one job, not jobs across runners).
     **These three (4-6) are recorded by this session, NOT user-approved** —
     raise them the next time the user is in the loop; rebranding them is
     harmless but pointless, and each is a new divergence.
+    **Quit-sentinel lockstep (2026-09-27 sync).** Upstream's
+    `fix(desktop): record intentional quit sentinels as expected transitions`
+    wrapped `local-backend-lifecycle.ts`'s abort reason in
+    `markExpectedTransition(...)` and added two tests that PIN the sentence:
+    `electron/local-backend-lifecycle.test.ts` (asserts the live
+    `signal.reason.message`, so it FAILS against this fork's string) and
+    `electron/crash-forensics.test.ts` (5 self-constructed fixtures, which
+    pass either way but stop mirroring what this fork emits). Both were
+    rebranded in lockstep with the source, keeping the sweep at 6. Note the
+    source conflict itself must take BOTH sides — the fork's product name and
+    upstream's `markExpectedTransition` wrapper — because the wrapper's import
+    auto-merges in, and an "ours" resolution leaves it unused.
     **Known blind spot — PARTIAL-MATCH test assertions are invisible to this
     grep (learned 2026-09-25).** The sweep greps the literal "Hermes Desktop",
     so a test that pins only part of a rebranded string slips through:
@@ -477,6 +507,17 @@ one job, not jobs across runners).
     durable fix is still sharding or gating the lane. **Re-assert after every
     sync**; sweep: `grep -n HERMES_TEST_WORKERS .github/workflows/tests.yml`
     (expect `test`=4, `e2e`=1, `e2e-upgrade`=4).
+    **`e2e-upgrade` sharding (arrived 2026-09-27)**: upstream turned this lane
+    into a matrix fed by a new `e2e-upgrade-plan` job (one shard per suite
+    directory under `tests/e2e/core/upgrade`) and raised its workers 4 -> 6.
+    The conflict is in the job header ONLY, and resolving it "ours" is WRONG:
+    the run step below it auto-merges to upstream's sharded form and reads
+    `matrix.shard`, so a header without `needs:`/`strategy:` yields an empty
+    shard and the step's own "no test files for shard" guard exits 1. Keep
+    upstream's `name`/`needs`/`strategy` and re-apply the fork's
+    `runs-on: ubuntu-latest` + timeout 120. The workers line sits OUTSIDE the
+    conflict and is byte-identical to the merge base on this side, so git
+    takes upstream's 6 SILENTLY — re-assert 4 by hand every sync.
     **SUPERSEDED the same day — `workers: 2` was NOT enough.** A fourth run
     lost a fourth distinct upstream test,
     `tests/e2e/core/providers/test_native_codex_app_server_faults.py`
@@ -522,6 +563,33 @@ one job, not jobs across runners).
     out upstream.
   - `windows-bundle-sdk.yml` (arrived 2026-09-25): fires on `pull_request`
     for the MSIX tooling files. Both matrix rows -> `windows-11-arm`.
+  - `e2e-desktop-update.yml` (arrived 2026-09-27, upstream
+    `ubuntu-latest-32-core`): `runs-on: ubuntu-latest`, timeout 30 -> 90,
+    mirroring its sibling `e2e-desktop-core.yml`. `ci.yaml` calls it whenever
+    `detect` reports `python_prod` or `frontend`, which every sync PR trips.
+    Its shards are `continue-on-error: true` (advisory), but `all-checks-pass`
+    still lists it under `needs:`, so a job that never gets a runner leaves
+    the aggregate gate pending forever rather than merely red. **Recorded by
+    this session 2026-09-27, NOT user-approved.**
+  - `windows-install-update-e2e.yml` (arrived 2026-09-27, upstream
+    `windows-latest-32-core`): `runs-on: windows-latest`. `tests-os.yml`
+    calls it with NO `if:` gate on every Python PR, so unlike the
+    `install-e2e*.yml` family it is genuinely PR-reachable here. Upstream's
+    budget was 50 min and its `HERMES_TEST_WORKERS` 6.
+    **MEASURED on the first run here (2026-09-27, PR #112) — it starved, as
+    predicted.** Upstream's comment on that line ("one journey per file, all in
+    parallel (each is mostly network + subprocess wait)") holds on 32 cores, but
+    a worker in THIS lane is a whole real Windows install — ~450 MB of
+    ffmpeg/node/npm/python/agent-browser plus two dependency builds — so six at
+    once on 4 vCPU is the same regime PR #92/#109 measured on the other lanes.
+    Receipt: one machine's setup alone consumed 1493 s of the job's 1541 s
+    (npm 630 s, python deps 244 s, agent-browser 1425->1480 s), and all 6 files
+    failed — 5 with test failures, 1 before collection — none a logic error.
+    Now `HERMES_TEST_WORKERS: 2` and timeout 50 -> 90, the same shape as
+    `e2e` (30 -> 90) and `e2e-upgrade` (60 -> 120). This is ONE measurement:
+    if it still starves, follow `e2e`'s path (shard the lane and drop to
+    `workers: 1`) rather than trying a third worker number.
+    **Recorded by this session 2026-09-27, NOT user-approved.**
   - `rust-tests.yml`: `runs-on: ubuntu-latest`
   - `nix.yml` flake-check job: `runs-on: ubuntu-latest`
   - `e2e-desktop.yml`: `runs-on: ubuntu-latest`
@@ -529,10 +597,61 @@ one job, not jobs across runners).
     gated `if: github.repository == 'NousResearch/hermes-agent'` and can
     never run on this fork. Same for the release/bundle workflows that only
     run on `workflow_dispatch` / `workflow_call`
-    (`install-e2e*.yml`, `desktop-bundle-smoke.yml`,
-    `desktop-bundled-release.yml`) and `windows-venv-e2e.yml`, which fires
-    only on pushes to `wine2e/**`. The sweep's real question is not "does a
-    `-core` label appear" but "can a PR on this fork reach that job".
+    (`desktop-bundle-smoke.yml`, `desktop-bundled-release.yml`) and
+    `windows-venv-e2e.yml`, which fires only on pushes to `wine2e/**`. The
+    sweep's real question is not "does a `-core` label appear" but "can a PR
+    on this fork reach that job".
+    **CORRECTED 2026-09-27 (PR #112) — `install-e2e*.yml` is NO LONGER in
+    that dispatch-only list.** This file used to group it with them; the
+    2026-09-27 sync added a `pull_request:` trigger to `install-e2e.yml`
+    (verified: its triggers at the sync base were
+    `workflow_dispatch`/`workflow_call`/`schedule`, and are now those plus
+    `pull_request`). It therefore runs on every PR here, and it is NOT part
+    of `ci.yaml`'s `all-checks-pass` needs list, so it fails beside the
+    aggregate gate rather than inside it — easy to miss. Two consequences,
+    neither fixed yet: (1) its `Pick release tags` job fails immediately
+    because this fork has no `v20YY.*` release tags to sample (same root
+    cause as the `e2e-upgrade` `git` shard — see the release-tag note
+    below); (2) the `windows-latest-32-core` runners in
+    `install-e2e-windows-run.yml` are now PR-reachable and would queue
+    forever, currently masked only because the tag job fails first and the
+    downstream matrix skips.
+    **RESOLVED 2026-09-28 (user-approved): the `pull_request:` trigger is
+    DROPPED on this fork**, restoring the pre-sync trigger set
+    (`workflow_dispatch` / `workflow_call` / `schedule`). That puts
+    `install-e2e*.yml` back in the dispatch-only group above, so its
+    `windows-latest-32-core` runners are once again unreachable from a PR and
+    need no patch. **Re-assert after every upstream sync** — the sync that
+    added the trigger will re-add it. Sweep: the `on:` keys must not contain
+    `pull_request`.
+- **No release tags on this fork (found 2026-09-27, PR #112) — RESOLVED by
+  carve-out, user-approved 2026-09-28.** Upstream tags releases `v2026.M.D`-style; this
+  fork's only tags are two `v0.21.4+canary.*` ones, so every
+  `git describe --tags --match 'v20[0-9][0-9].*'` here returns
+  `fatal: No names found, cannot describe anything`. Two lanes depend on it:
+  `tests.yml`'s `e2e-upgrade` **`git` shard** (3 files new in the 2026-09-27
+  sync under `tests/e2e/core/upgrade/git/`, which resolve the N-1 release via
+  `_git_world.py::n1_tag()`), and `install-e2e.yml`'s `Pick release tags`
+  job. `hermes_cli/version_info.py:100` uses the same pattern but degrades
+  gracefully (`_calver_release_version` returns `None`), so it is NOT
+  implicated. This is a repo-level fact, not a merge regression, and no code
+  change satisfies it. The user chose to carve both lanes out rather than push
+  upstream's tags into this fork (2026-09-28):
+  - `e2e-upgrade`'s `git` shard is excluded in `e2e-upgrade-plan`'s script via
+    `NEEDS_RELEASE_TAGS = {"git"}`. **The tests are NOT deleted, skipped or
+    xfailed** — they stay in the tree untouched and the lane picks the shard up
+    again the moment this repo carries release tags; deleting that one set is
+    the whole revert. Do not "fix" this by adding skip markers to the tests.
+  - `install-e2e.yml`'s `pull_request:` trigger is dropped (see the CI runner
+    carve-out above), which retires its `Pick release tags` failure on PRs.
+  **Re-assert both after every upstream sync** — a sync re-adds upstream's
+  trigger and any new tag-dependent suite directory. Sweep:
+  `grep -c NEEDS_RELEASE_TAGS .github/workflows/tests.yml` (expect **2** — the
+  definition and its use in the comprehension; 0 means a sync dropped it) and
+  `python3 -c "import yaml;d=yaml.safe_load(open('.github/workflows/install-e2e.yml'));print(list((d.get(True) or d.get('on')).keys()))"`
+  (expect no `pull_request`). If a future sync adds another suite under
+  `tests/e2e/core/upgrade/` that calls `n1_tag()`, add its directory name to
+  that set.
 - **Icon-freshness CI carve-out (recorded 2026-09-25, NOT user-approved)**:
   upstream's new `.github/workflows/icons-freshness-check.yml` regenerates
   every icon target from `assets/nous-girl-*.svg` via
