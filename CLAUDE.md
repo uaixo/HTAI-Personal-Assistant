@@ -256,6 +256,24 @@ one job, not jobs across runners).
     function; relocated in PR #92, 2026-09-06. The darwin branch globs
     `mac*/*.app` and names the executable after the bundle; there must be
     0 hits for the hardcoded `mac*/Hermes.app` in this file)
+  - `hermes_cli/linux_desktop_entry.py` (one line: `APP_ID = "ai.nous.desktop"`,
+    upstream `com.nousresearch.hermes`). This is NOT cosmetic: the module's own
+    comment explains that electron-builder bakes `product-identity.cjs`'s `appId`
+    into `extraMetadata.desktopName`, Electron hands that to the compositor
+    verbatim, and GNOME links a window to a launcher by `StartupWMClass` or a
+    `<app_id>.desktop` filename — so with upstream's id here a packaged NousAI
+    launch matches NEITHER rung and lands on the placeholder icon. The fork had
+    this latent bug until upstream's new
+    `tests/hermes_cli/test_linux_desktop_entry.py::test_app_id_matches_the_desktop_build_identity`
+    (arrived in the 2026-09-27 sync) asserted the pair and went red. **Re-assert
+    after every upstream sync.** Note `DESKTOP_ENTRY_NAME` derives from `APP_ID`,
+    so a fork install that already wrote `com.nousresearch.hermes.desktop` will
+    leave that file behind; `_remove_legacy_desktop_entry` only retires
+    `hermes.desktop` and is gated on a `Name=Hermes` line, so extending it to the
+    old fork id is a SEPARATE decision, not done here. Do NOT bulk-rename the
+    other `com.nousresearch.hermes` occurrences — they are unrelated identifiers
+    (plugin-manifest extension key, macOS signing id, tccutil doc strings).
+    **Recorded by this session 2026-09-27, NOT user-approved.**
   - `apps/desktop/src/components/chat/intro.tsx` +
     `apps/desktop/src/components/chat/intro-copy.jsonl` (empty-session hero:
     WORDMARK `NOUS AI ASSISTANT`, intro copy de-Hermes'd — user-approved

@@ -26,7 +26,12 @@ from typing import Callable, Mapping, Optional
 # verbatim (Wayland app_id, CHROME_DESKTOP). GNOME links a window to a launcher by StartupWMClass
 # or by a `<app_id>.desktop` file name, so the entry has to carry the same id — under the old
 # "hermes.desktop" name a packaged launch matches neither rung and lands on the placeholder icon.
-APP_ID = "com.nousresearch.hermes"
+# Fork carve-out: this fork's product-identity.cjs sets appId to "ai.nous.desktop"
+# (CLAUDE.md, Phase 2 brand pack), and the comment above is why the two MUST agree —
+# with upstream's id here a packaged NousAI launch matches neither rung and lands on
+# the placeholder icon. Re-assert after every upstream sync; upstream's own
+# test_app_id_matches_the_desktop_build_identity pins the pair.
+APP_ID = "ai.nous.desktop"
 DESKTOP_ENTRY_NAME = f"{APP_ID}.desktop"
 
 # Entry name written before the app-id rename; a successful install retires it so the menu does
