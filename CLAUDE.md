@@ -597,10 +597,41 @@ one job, not jobs across runners).
     gated `if: github.repository == 'NousResearch/hermes-agent'` and can
     never run on this fork. Same for the release/bundle workflows that only
     run on `workflow_dispatch` / `workflow_call`
-    (`install-e2e*.yml`, `desktop-bundle-smoke.yml`,
-    `desktop-bundled-release.yml`) and `windows-venv-e2e.yml`, which fires
-    only on pushes to `wine2e/**`. The sweep's real question is not "does a
-    `-core` label appear" but "can a PR on this fork reach that job".
+    (`desktop-bundle-smoke.yml`, `desktop-bundled-release.yml`) and
+    `windows-venv-e2e.yml`, which fires only on pushes to `wine2e/**`. The
+    sweep's real question is not "does a `-core` label appear" but "can a PR
+    on this fork reach that job".
+    **CORRECTED 2026-09-27 (PR #112) — `install-e2e*.yml` is NO LONGER in
+    that dispatch-only list.** This file used to group it with them; the
+    2026-09-27 sync added a `pull_request:` trigger to `install-e2e.yml`
+    (verified: its triggers at the sync base were
+    `workflow_dispatch`/`workflow_call`/`schedule`, and are now those plus
+    `pull_request`). It therefore runs on every PR here, and it is NOT part
+    of `ci.yaml`'s `all-checks-pass` needs list, so it fails beside the
+    aggregate gate rather than inside it — easy to miss. Two consequences,
+    neither fixed yet: (1) its `Pick release tags` job fails immediately
+    because this fork has no `v20YY.*` release tags to sample (same root
+    cause as the `e2e-upgrade` `git` shard — see the release-tag note
+    below); (2) the `windows-latest-32-core` runners in
+    `install-e2e-windows-run.yml` are now PR-reachable and would queue
+    forever, currently masked only because the tag job fails first and the
+    downstream matrix skips. Re-check both if the tag question is ever
+    resolved.
+- **No release tags on this fork (found 2026-09-27, PR #112) — BLOCKS two
+  lanes, NOT yet resolved.** Upstream tags releases `v2026.M.D`-style; this
+  fork's only tags are two `v0.21.4+canary.*` ones, so every
+  `git describe --tags --match 'v20[0-9][0-9].*'` here returns
+  `fatal: No names found, cannot describe anything`. Two lanes depend on it:
+  `tests.yml`'s `e2e-upgrade` **`git` shard** (3 files new in the 2026-09-27
+  sync under `tests/e2e/core/upgrade/git/`, which resolve the N-1 release via
+  `_git_world.py::n1_tag()`), and `install-e2e.yml`'s `Pick release tags`
+  job. `hermes_cli/version_info.py:100` uses the same pattern but degrades
+  gracefully (`_calver_release_version` returns `None`), so it is NOT
+  implicated. This is a repo-level fact, not a merge regression, and no code
+  change satisfies it — the options are to push upstream's release tags into
+  this fork, or to carve the lanes out. **Do NOT carve them out by deleting or
+  skipping the tests**; that needs an explicit user decision. Raised with the
+  user 2026-09-27, unanswered as of this note.
 - **Icon-freshness CI carve-out (recorded 2026-09-25, NOT user-approved)**:
   upstream's new `.github/workflows/icons-freshness-check.yml` regenerates
   every icon target from `assets/nous-girl-*.svg` via
