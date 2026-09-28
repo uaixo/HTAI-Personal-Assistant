@@ -27,11 +27,12 @@ jobs:
     name: Windows install.ps1 + hermes update E2E
     # Fork carve-out: standard hosted runners (CLAUDE.md "CI runner
     # carve-out"). tests-os.yml calls this lane ungated on every Python
-    # PR, so a 32-core job queues forever here. Upstream's budget is kept
-    # until a real run on this fork measures it.
+    # PR, so a 32-core job queues forever here. Budget raised 50 -> 90 to
+    # match the worker cut below, the same shape as e2e (30 -> 90) and
+    # e2e-upgrade (60 -> 120) on this fork.
     runs-on: windows-latest
     # A typical run is ~17 min; one slow runner took 28 min for the same work (run 36295230146).
-    timeout-minutes: 50
+    timeout-minutes: 90
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -63,7 +64,14 @@ jobs:
           HERMES_E2E_PROFILES_ROOT: C:\Users
           HERMES_E2E_ARTIFACTS: ${{ runner.temp }}\win-update-e2e
           # One journey per file, all in parallel (each is mostly network + subprocess wait).
-          HERMES_TEST_WORKERS: '6'
+          # Fork carve-out: 2, not upstream's 6. Upstream's "mostly network + subprocess wait"
+          # holds on its 32-core runner; on this fork's 4-vCPU windows-latest a worker here is
+          # a whole real install (~450 MB of ffmpeg/node/npm/python/agent-browser plus two
+          # dependency builds), so six at once is the starvation regime PR #92/#109 measured.
+          # MEASURED on the first run here (2026-09-27, PR #112): a single machine's setup
+          # alone took 1493 s of the job's 1541 s -- npm 630 s, python deps 244 s -- and all
+          # 6 files failed, 5 with test failures and 1 before collection, none a logic error.
+          HERMES_TEST_WORKERS: '2'
           HERMES_TEST_FILE_TIMEOUT: '2400'
           HERMES_TEST_FILE_RETRIES: '0'
           OPENROUTER_API_KEY: ''

@@ -575,11 +575,21 @@ one job, not jobs across runners).
     `windows-latest-32-core`): `runs-on: windows-latest`. `tests-os.yml`
     calls it with NO `if:` gate on every Python PR, so unlike the
     `install-e2e*.yml` family it is genuinely PR-reachable here. Upstream's
-    budget (50 min) is kept: its own comment measures ~17 min typical / 28 min
-    on a slow runner, but that is on a 32-core host and no 4-vCPU measurement
-    exists yet — re-check after the first real run on this fork and raise the
-    timeout if it starves. **Recorded by this session 2026-09-27, NOT
-    user-approved.**
+    budget was 50 min and its `HERMES_TEST_WORKERS` 6.
+    **MEASURED on the first run here (2026-09-27, PR #112) — it starved, as
+    predicted.** Upstream's comment on that line ("one journey per file, all in
+    parallel (each is mostly network + subprocess wait)") holds on 32 cores, but
+    a worker in THIS lane is a whole real Windows install — ~450 MB of
+    ffmpeg/node/npm/python/agent-browser plus two dependency builds — so six at
+    once on 4 vCPU is the same regime PR #92/#109 measured on the other lanes.
+    Receipt: one machine's setup alone consumed 1493 s of the job's 1541 s
+    (npm 630 s, python deps 244 s, agent-browser 1425->1480 s), and all 6 files
+    failed — 5 with test failures, 1 before collection — none a logic error.
+    Now `HERMES_TEST_WORKERS: 2` and timeout 50 -> 90, the same shape as
+    `e2e` (30 -> 90) and `e2e-upgrade` (60 -> 120). This is ONE measurement:
+    if it still starves, follow `e2e`'s path (shard the lane and drop to
+    `workers: 1`) rather than trying a third worker number.
+    **Recorded by this session 2026-09-27, NOT user-approved.**
   - `rust-tests.yml`: `runs-on: ubuntu-latest`
   - `nix.yml` flake-check job: `runs-on: ubuntu-latest`
   - `e2e-desktop.yml`: `runs-on: ubuntu-latest`
