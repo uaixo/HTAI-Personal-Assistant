@@ -615,10 +615,17 @@ one job, not jobs across runners).
     below); (2) the `windows-latest-32-core` runners in
     `install-e2e-windows-run.yml` are now PR-reachable and would queue
     forever, currently masked only because the tag job fails first and the
-    downstream matrix skips. Re-check both if the tag question is ever
-    resolved.
-- **No release tags on this fork (found 2026-09-27, PR #112) — BLOCKS two
-  lanes, NOT yet resolved.** Upstream tags releases `v2026.M.D`-style; this
+    downstream matrix skips.
+    **RESOLVED 2026-09-28 (user-approved): the `pull_request:` trigger is
+    DROPPED on this fork**, restoring the pre-sync trigger set
+    (`workflow_dispatch` / `workflow_call` / `schedule`). That puts
+    `install-e2e*.yml` back in the dispatch-only group above, so its
+    `windows-latest-32-core` runners are once again unreachable from a PR and
+    need no patch. **Re-assert after every upstream sync** — the sync that
+    added the trigger will re-add it. Sweep: the `on:` keys must not contain
+    `pull_request`.
+- **No release tags on this fork (found 2026-09-27, PR #112) — RESOLVED by
+  carve-out, user-approved 2026-09-28.** Upstream tags releases `v2026.M.D`-style; this
   fork's only tags are two `v0.21.4+canary.*` ones, so every
   `git describe --tags --match 'v20[0-9][0-9].*'` here returns
   `fatal: No names found, cannot describe anything`. Two lanes depend on it:
@@ -628,10 +635,23 @@ one job, not jobs across runners).
   job. `hermes_cli/version_info.py:100` uses the same pattern but degrades
   gracefully (`_calver_release_version` returns `None`), so it is NOT
   implicated. This is a repo-level fact, not a merge regression, and no code
-  change satisfies it — the options are to push upstream's release tags into
-  this fork, or to carve the lanes out. **Do NOT carve them out by deleting or
-  skipping the tests**; that needs an explicit user decision. Raised with the
-  user 2026-09-27, unanswered as of this note.
+  change satisfies it. The user chose to carve both lanes out rather than push
+  upstream's tags into this fork (2026-09-28):
+  - `e2e-upgrade`'s `git` shard is excluded in `e2e-upgrade-plan`'s script via
+    `NEEDS_RELEASE_TAGS = {"git"}`. **The tests are NOT deleted, skipped or
+    xfailed** — they stay in the tree untouched and the lane picks the shard up
+    again the moment this repo carries release tags; deleting that one set is
+    the whole revert. Do not "fix" this by adding skip markers to the tests.
+  - `install-e2e.yml`'s `pull_request:` trigger is dropped (see the CI runner
+    carve-out above), which retires its `Pick release tags` failure on PRs.
+  **Re-assert both after every upstream sync** — a sync re-adds upstream's
+  trigger and any new tag-dependent suite directory. Sweep:
+  `grep -c NEEDS_RELEASE_TAGS .github/workflows/tests.yml` (expect **2** — the
+  definition and its use in the comprehension; 0 means a sync dropped it) and
+  `python3 -c "import yaml;d=yaml.safe_load(open('.github/workflows/install-e2e.yml'));print(list((d.get(True) or d.get('on')).keys()))"`
+  (expect no `pull_request`). If a future sync adds another suite under
+  `tests/e2e/core/upgrade/` that calls `n1_tag()`, add its directory name to
+  that set.
 - **Icon-freshness CI carve-out (recorded 2026-09-25, NOT user-approved)**:
   upstream's new `.github/workflows/icons-freshness-check.yml` regenerates
   every icon target from `assets/nous-girl-*.svg` via

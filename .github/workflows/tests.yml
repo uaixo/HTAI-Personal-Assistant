@@ -309,9 +309,19 @@ jobs:
           shards=$(python3 - <<'PY'
           import json, pathlib
           root = pathlib.Path("tests/e2e/core/upgrade")
+          # Fork carve-out (user-approved 2026-09-28, PR #112): this fork has no
+          # upstream-style `v20YY.*` release tags -- only two `v0.21.4+canary.*` --
+          # so `git describe --tags --match 'v20[0-9][0-9].*' HEAD~1` in
+          # git/_git_world.py::n1_tag() returns "No names found" and every file in
+          # that suite errors before it asserts anything. The tests are NOT skipped
+          # or deleted: they stay in the tree and run unchanged the moment this repo
+          # carries release tags -- delete this set and the lane picks the shard up
+          # again on its own.
+          NEEDS_RELEASE_TAGS = {"git"}
           shards = ["core"] if any(root.glob("test_*.py")) else []
           shards += sorted(d.name for d in root.iterdir()
-                           if d.is_dir() and not d.name.startswith(("_", ".")) and any(d.rglob("test_*.py")))
+                           if d.is_dir() and not d.name.startswith(("_", ".")) and any(d.rglob("test_*.py"))
+                           and d.name not in NEEDS_RELEASE_TAGS)
           print(json.dumps(shards))
           PY
           )

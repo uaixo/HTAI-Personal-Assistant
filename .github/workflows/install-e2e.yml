@@ -119,41 +119,14 @@ on:
   schedule:
     # Every 12 hours, off the hour to avoid the top-of-hour runner crunch.
     - cron: '20 7,19 * * *'
-  pull_request:
-    # The install/update surface: derived from 60 days of commits whose subject
-    # names update/install/pm/bootstrap/relaunch. Keep it to code a real
-    # install or `hermes update` executes; hermes_cli/main.py and friends are
-    # deliberately absent (they change daily and are covered by e2e-upgrade).
-    paths:
-      - 'scripts/install*'
-      - 'scripts/desktop-update/**'
-      - 'setup-hermes.*'
-      - 'hermes_bootstrap.py'
-      - 'pm/**'
-      - 'hermes_cli/update*'
-      - 'hermes_cli/*update*'
-      - 'hermes_cli/pm*'
-      - 'hermes_cli/*install*'
-      - 'hermes_cli/_early_recovery.py'
-      - 'hermes_cli/_launchers.py'
-      - 'hermes_cli/managed_uv.py'
-      - 'hermes_cli/venv_sync.py'
-      - 'hermes_cli/relaunch.py'
-      - 'hermes_cli/gateway.py'
-      - 'gateway/status.py'
-      - 'apps/bootstrap-installer/**'
-      - 'apps/desktop/electron/*update*'
-      - 'apps/desktop/electron/updater/**'
-      - 'pyproject.toml'
-      - 'uv.lock'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tests/install/**'
-      - 'scripts/sandbox/generate-e2e-matrix.mjs'
-      - 'scripts/sandbox/pick-release-tags.sh'
-      - 'scripts/ci/setup_toolchain.py'
-      - '.github/actions/setup-pm/**'
-      - '.github/workflows/install-e2e*.yml'
+  # Fork carve-out (user-approved 2026-09-28, PR #112): upstream added a
+  # `pull_request:` trigger (with a paths filter) to this workflow in the
+  # 2026-09-27 sync. It is dropped here, restoring the pre-sync trigger set.
+  # Two reasons, both fork-specific: the lane samples `v20YY.*` release tags,
+  # which this repo does not have, so `Pick release tags` fails on every PR;
+  # and it reaches `install-e2e-windows-run.yml`'s `windows-latest-32-core`
+  # runners, which a personal-account fork cannot provide. The workflow stays
+  # fully available on workflow_dispatch / workflow_call / schedule.
 
 permissions:
   contents: read
