@@ -188,8 +188,13 @@ jobs:
             -v --tb=short
         env:
           # These files spawn nested PowerShell trees. CPU-count parallelism
-          # starves cold child startup before the fixture's idle deadline.
-          HERMES_TEST_WORKERS: ${{ matrix.marker == 'windows' && (runner.arch == 'ARM64' && '16' || '16') || '' }}
+          # starves cold child startup before the fixture's idle deadline, and
+          # on the standard 4-vCPU runner this fork uses (user-owned: larger
+          # runners never start here) sixteen workers starve whole files past
+          # the 300 s budget. Two at a time, with the per-file budget the
+          # Windows E2E lane already uses for the same process-tree model.
+          HERMES_TEST_WORKERS: ${{ matrix.marker == 'windows' && '2' || '' }}
+          HERMES_TEST_FILE_TIMEOUT: ${{ matrix.marker == 'windows' && '900' || '300' }}
           HERMES_TEST_SLICE: ${{ matrix.slice || '' }}
           # Belt-and-suspenders with tests/conftest.py's env blanking: no
           # test may reach a real provider API.
