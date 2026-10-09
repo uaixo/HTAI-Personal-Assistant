@@ -145,7 +145,7 @@ describe('Classic NousAI is an explicit Desktop pick, never inferred from stock 
     const themes = run.api.theme?.availableThemes ?? []
     expect(themes.filter(t => t.label === 'Classic NousAI').map(t => t.name)).toEqual(['classic'])
     expect(themes.some(t => t.name === 'default')).toBe(false)
-    expect(run.api.skin?.('list').match(/Classic Hermes/g)).toHaveLength(1)
+    expect(run.api.skin?.('list').match(/Classic NousAI/g)).toHaveLength(1)
     expect(JSON.parse(window.localStorage.getItem(BACKEND_THEMES_KEY) ?? '{}')).not.toHaveProperty('default')
   })
 

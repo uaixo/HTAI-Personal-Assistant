@@ -4,8 +4,8 @@
 // legacySymbol, symbol, keepMarker, write} as JSON on stdin and prints the
 // paths it changed (or would change), one per line.
 //
-// Only literal text is touched: string literals, template literal chunks and
-// JSX text. Identifiers, comments and import paths are never rewritten, so a
+// Only literal text is touched: string literals, template literal chunks,
+// regular-expression literals and JSX text. Identifiers, comments and import paths are never rewritten, so a
 // `hermes` module stays `hermes` while the `'Hermes'` a person reads changes.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
@@ -42,6 +42,7 @@ function isTextNode(node) {
     ts.isTemplateHead(node) ||
     ts.isTemplateMiddle(node) ||
     ts.isTemplateTail(node) ||
+    ts.isRegularExpressionLiteral(node) ||
     ts.isJsxText(node)
   )
 }

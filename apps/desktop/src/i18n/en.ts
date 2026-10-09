@@ -1,3 +1,5 @@
+import { brandCatalog } from '@hermes/shared/brand'
+
 import { FIELD_DESCRIPTIONS, FIELD_LABELS } from '@/app/settings/constants'
 
 import { enAppTour, enHandoffTour } from './en_app_tour'
@@ -14,7 +16,8 @@ import { enSharedMetrics } from './en_shared_metrics'
 import { enUninstallSection } from './en_uninstall_section'
 import type { Translations } from './types'
 
-export const en: Translations = {
+// Branded as it loads: direct importers see the same text as TRANSLATIONS.
+export const en: Translations = brandCatalog({
   externalOpenFailed: {
     title: 'Couldn’t open this link',
     message: 'No browser is registered to open this address. Copy the link and open it manually.',
@@ -5235,4 +5238,4 @@ export const en: Translations = {
       toggle: open => `${open ? 'Show' : 'Hide'} sidebar`
     }
   }
-}
+})

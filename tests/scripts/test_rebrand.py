@@ -87,6 +87,7 @@ def test_typescript_literals_are_branded_through_the_compiler(tmp_path, monkeypa
         "// Hermes in a comment\nimport { x } from './hermes'\n"
         "const a = 'Hermes Agent'\nconst b = `Hermes can use ${x}`\n"
         "const c = <p title=\"Hermes\">Ask Hermes about Hermes 4</p>\n"
+        "const e = text.match(/Classic Hermes/g)\n"
         "const d = 'Hermes' // rebrand: keep\n", encoding="utf-8")
     monkeypatch.setattr(rebrand, "REPO_ROOT", tmp_path)
     changed = rebrand.rebrand_typescript([str(source)], write=True)
@@ -97,6 +98,7 @@ def test_typescript_literals_are_branded_through_the_compiler(tmp_path, monkeypa
     assert f"const b = `{AGENT_NAME} can use ${{x}}`" in out
     assert f"<p title=\"{AGENT_NAME}\">Ask {AGENT_NAME} about Hermes 4</p>" in out
     assert "const d = 'Hermes' // rebrand: keep" in out
+    assert f"const e = text.match(/Classic {AGENT_NAME}/g)" in out
     assert rebrand.rebrand_typescript([str(source)], write=False) == []
 
 

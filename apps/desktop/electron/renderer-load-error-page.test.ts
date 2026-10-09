@@ -28,7 +28,7 @@ test('error page reload button targets the real renderer URL when provided', () 
 
   // A data: page cannot recover with location.reload() (it would re-render
   // the error page) — the button must navigate back to the app URL.
-  assert.match(html, /location\.replace\("file:\/\/\/C:\/Hermes%20Agent\/dist\/index\.html"\)/)
+  assert.match(html, /location\.replace\("file:\/\/\/C:\/NousAI%20Agent\/dist\/index\.html"\)/)
   assert.doesNotMatch(html, /location\.reload\(\)/)
 })
 

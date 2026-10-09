@@ -81,10 +81,10 @@ test('nativeRemovalInstructions names the steward per kind and OS', () => {
     nativeRemovalInstructions('bundled', 'darwin', '/Applications/NousAI Canary.app'),
     'Quit the app and drag NousAI Canary.app from /Applications to the Trash.'
   )
-  assert.match(nativeRemovalInstructions('bundled', 'darwin'), /drag the Hermes app from Applications to the Trash/)
+  assert.match(nativeRemovalInstructions('bundled', 'darwin'), /drag the NousAI app from Applications to the Trash/)
   assert.match(
     nativeRemovalInstructions('bundled', 'linux', '/home/x/Apps/NousAI.AppImage'),
-    /\/home\/x\/Apps\/Hermes\.AppImage/
+    /\/home\/x\/Apps\/NousAI\.AppImage/
   )
   assert.match(
     nativeRemovalInstructions('bundled', 'linux', '/opt/hermes/linux-unpacked'),
@@ -273,7 +273,7 @@ test('buildWindowsCleanupScript waits (bounded) for PID, runs uninstall, rmdir b
   assert.match(script, /findstr \/r \/c:" %PID% "/)
   // Removal is a retry loop (Windows releases dir handles lazily).
   assert.match(script, /:rmloop/)
-  assert.match(script, /rmdir \/s \/q "C:\\Users\\x\\AppData\\Local\\Programs\\Hermes" >nul 2>&1/)
+  assert.match(script, /rmdir \/s \/q "C:\\Users\\x\\AppData\\Local\\Programs\\NousAI" >nul 2>&1/)
   assert.match(script, /if %tries% geq 10 goto rmdone/)
   assert.match(script, /del "%~f0"/)
 })
