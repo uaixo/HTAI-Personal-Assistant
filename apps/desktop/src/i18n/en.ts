@@ -1,3 +1,4 @@
+// health: allow FILE_LINES -- a catalog, not a facade: the brand wrapper at its definition is its only growth
 import { brandCatalog } from '@hermes/shared/brand'
 
 import { FIELD_DESCRIPTIONS, FIELD_LABELS } from '@/app/settings/constants'

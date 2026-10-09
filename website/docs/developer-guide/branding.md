@@ -22,7 +22,8 @@ only text a person reads carries the brand.
   `goodbye` from `hermes_brand`; `banner.py` carries the block-letter logo and hero art.
 - The desktop product identity (`apps/desktop/product-identity.cjs`) brands `display` and `pascal`
   (window titles, installer and archive names) and keeps `kebab` (appId, payload CLI name), so an
-  installed build's state and single-instance lock stay where they are.
+  installed build's state and single-instance lock stay where they are. The store build is
+  "NousAI Assistant": each variant's display name must differ from the full client's.
 
 ## What `brand_text` leaves alone
 

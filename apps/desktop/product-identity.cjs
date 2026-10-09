@@ -1,6 +1,7 @@
 // The desktop product identity — THE single source for every name-shaped
-// value a variant owns. HERMES_DESKTOP_VARIANT=light builds "Hermes
-// Light", the remote-only client; everything else is full "Hermes".
+// value a variant owns. HERMES_DESKTOP_VARIANT=light builds "NousAI
+// Light", the remote-only client; the store build is "NousAI Assistant";
+// everything else is full "NousAI".
 //
 // Consumed at build time by electron-builder.config.cjs (packaging
 // identity). electron/product-identity.ts is the typed runtime accessor.
@@ -20,7 +21,7 @@ const variants = {
     pascal: 'NousAILight'
   },
   bundled: {
-    display: 'NousAI',
+    display: 'NousAI Assistant',
     kebab: 'hermes-bundled',
     pascal: 'NousAIBundled'
   }
