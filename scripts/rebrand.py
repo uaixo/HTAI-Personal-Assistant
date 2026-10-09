@@ -47,9 +47,11 @@ PLAIN_EXTENSIONS = {".md", ".mdx", ".html", ".txt", ".json", ".plist", ".manifes
 HASH_COMMENT_NAMES = {"Dockerfile", "activate"}
 
 # Never rewritten: third-party and personal content, lockfiles, the catalogs (branded at load),
-# and the brand machinery itself (its inputs ARE the upstream names).
-EXCLUDED_PREFIXES = ("plugin-catalog/", "contributors/", "locales/", "ui-tui/src/i18n/en/", "website/static/",
-                     "apps/desktop/pr-assets/")
+# the OAuth client registration upstream publishes under its own client_id URL, and the brand
+# machinery itself (its inputs ARE the upstream names). The published model catalog under
+# website/static/api/ IS rewritten: a test holds it to the branded build script's output.
+EXCLUDED_PREFIXES = ("plugin-catalog/", "contributors/", "locales/", "ui-tui/src/i18n/en/",
+                     "website/static/oauth/", "apps/desktop/pr-assets/")
 EXCLUDED_FILES = {
     "hermes_brand.py", "scripts/rebrand.py", "scripts/rebrand_ts.mjs", "tests/test_hermes_brand.py",
     "tests/scripts/test_rebrand.py", "apps/shared/src/brand.ts", "apps/shared/src/brand.test.ts",

@@ -20,8 +20,9 @@ only text a person reads carries the brand.
   contributor records, lockfiles or the brand machinery itself.
 - The CLI skin engine derives the default skin's `agent_name`, `response_label`, `welcome` and
   `goodbye` from `hermes_brand`; `banner.py` carries the block-letter logo and hero art.
-- The desktop product identity (`apps/desktop/product-identity.cjs`) brands `display` and `pascal`
-  (window titles, installer and archive names) and keeps `kebab` (appId, payload CLI name), so an
+- The desktop product identity (`apps/desktop/product-identity.cjs`) brands `display` (window
+  titles, executable and bundle names, installer text) and keeps `kebab` (appId, payload CLI name)
+  and `pascal` (archive names, MSIX package identity: the release pipeline globs them), so an
   installed build's state and single-instance lock stay where they are. The store build is
   "NousAI Assistant": each variant's display name must differ from the full client's.
 

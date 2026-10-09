@@ -9,21 +9,22 @@
 /// <reference types="node" />
 'use strict'
 
-// `kebab` feeds appId and the payload CLI name: identifiers an installed build's
-// state and single-instance lock hang off, so they keep their upstream values.
-// `display` and `pascal` are what people see (window titles, installer and
-// archive names) and carry the product brand.
+// `display` is what people see (window titles, executable and bundle names,
+// installer text) and carries the product brand. `kebab` and `pascal` are
+// identifiers: appId, the payload CLI name, the MSIX package identity and the
+// release artifact names that the installed package family, the update feeds
+// and the release pipeline's globs hang off, so they keep their upstream values.
 const variants = {
-  '': { display: 'NousAI', kebab: 'hermes', pascal: 'NousAI' },
+  '': { display: 'NousAI', kebab: 'hermes', pascal: 'Hermes' }, // rebrand: keep -- pascal is an identifier
   light: {
     display: 'NousAI Light',
     kebab: 'hermes-light',
-    pascal: 'NousAILight'
+    pascal: 'HermesLight'
   },
   bundled: {
     display: 'NousAI Assistant',
     kebab: 'hermes-bundled',
-    pascal: 'NousAIBundled'
+    pascal: 'HermesBundled'
   }
 }
 

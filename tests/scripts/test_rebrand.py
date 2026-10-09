@@ -73,6 +73,8 @@ def test_line_mode_skips_comment_lines_and_kept_blocks():
     ("locales/en.yaml", False),
     ("plugin-catalog/foo/card.json", False),
     ("website/src/data/userStories.json", False),
+    ("website/static/api/model-catalog.json", True),
+    ("website/static/oauth/client-metadata.json", False),
     ("assets/banner.png", False),
     ("uv.lock", False),
     ("hermes_brand.py", False),
