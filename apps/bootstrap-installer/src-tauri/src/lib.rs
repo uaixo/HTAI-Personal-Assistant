@@ -116,7 +116,7 @@ pub fn run() {
     // Hermes is already installed, so users can re-run setup to repair a broken
     // install instead of the launcher fast path silently relaunching the app.
     let force_setup = force_setup_from_args(std::env::args().skip(1));
-    tracing::info!(?mode, force_setup, "NousAI installer starting");
+    tracing::info!(?mode, force_setup, "Hermes installer starting");
 
     // Hand off before constructing Tauri/AppKit. The setup callback is too
     // late: by then the process has already been registered as a regular
@@ -189,7 +189,7 @@ pub fn run() {
             paths::open_log_dir,
         ])
         .run(tauri::generate_context!())
-        .expect("error while running NousAI Setup");
+        .expect("error while running Hermes Setup");
 }
 
 #[cfg(test)]

@@ -8,7 +8,6 @@
     "./ansi": "./src/ansi.ts",
     "./billing": "./src/billing-types.ts",
     "./billing-policy": "./src/billing-policy.ts",
-    "./brand": "./src/brand.ts",
     "./charge-settlement": "./src/charge-settlement.ts",
     "./color": "./src/color.ts",
     "./format": "./src/format.ts",

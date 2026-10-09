@@ -171,8 +171,8 @@ find_installed_app() {
   # Require this installation's app, never an unrelated /Applications copy.
   local cand
   for cand in \
-    "$INSTALL_DIR/apps/desktop/release/mac-arm64/NousAI.app" \
-    "$INSTALL_DIR/apps/desktop/release/mac/NousAI.app"; do
+    "$INSTALL_DIR/apps/desktop/release/mac-arm64/Hermes.app" \
+    "$INSTALL_DIR/apps/desktop/release/mac/Hermes.app"; do
     [ -d "$cand" ] && { printf '%s' "$cand"; return 0; }
   done
   return 1
@@ -246,12 +246,12 @@ phase_install() {
     || fail "read-only verification failed after install"
   HERMES_DISABLE_LAZY_INSTALLS=1 PYTHONDONTWRITEBYTECODE=1 source_build_env "$hermes" --version 2>&1 | ts_prefix > "$LOG_DIR/version-old.log" || fail "hermes --version failed after install"
   ok "hermes --version works: $(head -c 120 "$LOG_DIR/version-old.log" | tr -d '\n')"
-  find_installed_app >/dev/null || fail "no installed NousAI.app after the dmg bootstrap"
+  find_installed_app >/dev/null || fail "no installed Hermes.app after the dmg bootstrap"
   ok "installed app: $(find_installed_app)"
   # The bootstrap can leave its launched app running. Preserve that handoff,
   # then request normal Quit of only this installed binary before smoke owns it.
   local installed_bin
-  installed_bin="$(find_installed_app)/Contents/MacOS/NousAI"
+  installed_bin="$(find_installed_app)/Contents/MacOS/Hermes"
   osascript -l JavaScript -e 'ObjC.import("AppKit"); function run(args) {
     const apps = $.NSWorkspace.sharedWorkspace.runningApplications;
     for (let i = 0; i < apps.count; i++) {
@@ -333,11 +333,11 @@ phase_update() {
       # The desktop stage is this leg's claim: the rebuilt app must exist.
       head_app=""
       for cand in \
-        "$INSTALL_DIR/apps/desktop/release/mac-arm64/NousAI.app" \
-        "$INSTALL_DIR/apps/desktop/release/mac/NousAI.app"; do
+        "$INSTALL_DIR/apps/desktop/release/mac-arm64/Hermes.app" \
+        "$INSTALL_DIR/apps/desktop/release/mac/Hermes.app"; do
         [ -d "$cand" ] && { head_app="$cand"; break; }
       done
-      [ -n "$head_app" ] || fail "no built NousAI.app under the checkout after the +desktop update"
+      [ -n "$head_app" ] || fail "no built Hermes.app under the checkout after the +desktop update"
       ok "rebuilt app present: $head_app"
       ;;
     open-app-update)
@@ -399,7 +399,7 @@ PYEOF
   local ildest="$LOG_DIR/install-logs"
   mkdir -p "$ildest"
   cp -R "$HOME_SANDBOX/.hermes/logs" "$ildest/hermes-logs" 2>/dev/null || true
-  local ud="$HOME_SANDBOX/Library/Application Support/NousAI"
+  local ud="$HOME_SANDBOX/Library/Application Support/Hermes"
   [ -d "$ud" ] && cp -R "$ud" "$ildest/desktop-userdata" 2>/dev/null || true
   cp "$HERMES_HOME/.hermes-update-result.json" "$ildest" 2>/dev/null || true
   ls -la "$HERMES_HOME" > "$ildest/hermes-home-ls.txt" 2>/dev/null || true

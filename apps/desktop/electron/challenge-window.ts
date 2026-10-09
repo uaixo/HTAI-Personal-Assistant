@@ -115,7 +115,7 @@ export function challengeWindowOptions(session: Session): BrowserWindowConstruct
     width: 520,
     height: 720,
     show: false,
-    title: 'NousAI — quick check',
+    title: 'Hermes — quick check',
     autoHideMenuBar: true,
     webPreferences: {
       contextIsolation: true,

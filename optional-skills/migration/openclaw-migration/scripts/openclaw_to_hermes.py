@@ -47,7 +47,7 @@ WORKSPACE_INSTRUCTIONS_FILENAME = "AGENTS" + ".md"
 MIGRATION_OPTION_METADATA: dict[str, dict[str, str]] = {
     "soul": {
         "label": "SOUL.md",
-        "description": "Import the OpenClaw persona file into NousAI.",
+        "description": "Import the OpenClaw persona file into Hermes.",
     },
     "workspace-agents": {
         "label": "Workspace instructions",
@@ -55,11 +55,11 @@ MIGRATION_OPTION_METADATA: dict[str, dict[str, str]] = {
     },
     "memory": {
         "label": "MEMORY.md",
-        "description": "Import long-term memory entries into NousAI memories.",
+        "description": "Import long-term memory entries into Hermes memories.",
     },
     "user-profile": {
         "label": "USER.md",
-        "description": "Import user profile entries into NousAI memories.",
+        "description": "Import user profile entries into Hermes memories.",
     },
     "messaging-settings": {
         "label": "Messaging settings",
@@ -71,7 +71,7 @@ MIGRATION_OPTION_METADATA: dict[str, dict[str, str]] = {
     },
     "command-allowlist": {
         "label": "Command allowlist",
-        "description": "Merge OpenClaw exec approval patterns into NousAI command_allowlist.",
+        "description": "Merge OpenClaw exec approval patterns into Hermes command_allowlist.",
     },
     "skills": {
         "label": "User skills",
@@ -83,39 +83,39 @@ MIGRATION_OPTION_METADATA: dict[str, dict[str, str]] = {
     },
     "discord-settings": {
         "label": "Discord settings",
-        "description": "Import Discord bot token and allowlist into NousAI .env.",
+        "description": "Import Discord bot token and allowlist into Hermes .env.",
     },
     "slack-settings": {
         "label": "Slack settings",
-        "description": "Import Slack bot/app tokens and allowlist into NousAI .env.",
+        "description": "Import Slack bot/app tokens and allowlist into Hermes .env.",
     },
     "whatsapp-settings": {
         "label": "WhatsApp settings",
-        "description": "Import WhatsApp allowlist into NousAI .env.",
+        "description": "Import WhatsApp allowlist into Hermes .env.",
     },
     "signal-settings": {
         "label": "Signal settings",
-        "description": "Import Signal account, HTTP URL, and allowlist into NousAI .env.",
+        "description": "Import Signal account, HTTP URL, and allowlist into Hermes .env.",
     },
     "provider-keys": {
         "label": "Provider API keys",
-        "description": "Import model provider API keys into NousAI .env (requires --migrate-secrets).",
+        "description": "Import model provider API keys into Hermes .env (requires --migrate-secrets).",
     },
     "model-config": {
         "label": "Default model",
-        "description": "Import the default model setting into NousAI config.yaml.",
+        "description": "Import the default model setting into Hermes config.yaml.",
     },
     "tts-config": {
         "label": "TTS configuration",
-        "description": "Import TTS provider and voice settings into NousAI config.yaml.",
+        "description": "Import TTS provider and voice settings into Hermes config.yaml.",
     },
     "shared-skills": {
         "label": "Shared skills",
-        "description": "Copy shared OpenClaw skills from ~/.openclaw/skills/ into NousAI.",
+        "description": "Copy shared OpenClaw skills from ~/.openclaw/skills/ into Hermes.",
     },
     "daily-memory": {
         "label": "Daily memory files",
-        "description": "Merge daily memory entries from workspace/memory/ into NousAI MEMORY.md.",
+        "description": "Merge daily memory entries from workspace/memory/ into Hermes MEMORY.md.",
     },
     "archive": {
         "label": "Archive unmapped docs",
@@ -123,7 +123,7 @@ MIGRATION_OPTION_METADATA: dict[str, dict[str, str]] = {
     },
     "mcp-servers": {
         "label": "MCP servers",
-        "description": "Import MCP server definitions from OpenClaw into NousAI config.yaml.",
+        "description": "Import MCP server definitions from OpenClaw into Hermes config.yaml.",
     },
     "plugins-config": {
         "label": "Plugins configuration",
@@ -139,7 +139,7 @@ MIGRATION_OPTION_METADATA: dict[str, dict[str, str]] = {
     },
     "agent-config": {
         "label": "Agent defaults and multi-agent setup",
-        "description": "Import agent defaults (compaction, context, thinking) into NousAI config. Archive multi-agent list.",
+        "description": "Import agent defaults (compaction, context, thinking) into Hermes config. Archive multi-agent list.",
     },
     "gateway-config": {
         "label": "Gateway configuration",
@@ -151,7 +151,7 @@ MIGRATION_OPTION_METADATA: dict[str, dict[str, str]] = {
     },
     "full-providers": {
         "label": "Full model provider definitions",
-        "description": "Import custom model providers (baseUrl, apiType, headers) into NousAI custom_providers.",
+        "description": "Import custom model providers (baseUrl, apiType, headers) into Hermes custom_providers.",
     },
     "deep-channels": {
         "label": "Deep channel configuration",
@@ -159,15 +159,15 @@ MIGRATION_OPTION_METADATA: dict[str, dict[str, str]] = {
     },
     "browser-config": {
         "label": "Browser configuration",
-        "description": "Import browser automation settings into NousAI config.yaml.",
+        "description": "Import browser automation settings into Hermes config.yaml.",
     },
     "tools-config": {
         "label": "Tools configuration",
-        "description": "Import tool settings (exec timeout, sandbox, web search) into NousAI config.yaml.",
+        "description": "Import tool settings (exec timeout, sandbox, web search) into Hermes config.yaml.",
     },
     "approvals-config": {
         "label": "Approval rules",
-        "description": "Import approval mode and rules into NousAI config.yaml approvals section.",
+        "description": "Import approval mode and rules into Hermes config.yaml approvals section.",
     },
     "memory-backend": {
         "label": "Memory backend configuration",
@@ -423,7 +423,7 @@ def dump_yaml_file(path: Path, data: dict[str, Any]) -> None:
     ``~/.hermes/config.yaml`` into a dotfiles repo or profile package.
     """
     if yaml is None:
-        raise RuntimeError("ruamel.yaml is required to update NousAI config.yaml")
+        raise RuntimeError("ruamel.yaml is required to update Hermes config.yaml")
     ensure_parent(path)
     target = os.path.realpath(str(path)) if os.path.islink(str(path)) else str(path)
     fd, tmp_path = tempfile.mkstemp(
@@ -519,24 +519,25 @@ def backup_existing(path: Path, backup_root: Path) -> Optional[Path]:
 # like ``openclaw`` → ``hermes`` (so filesystem paths like ``~/.openclaw``
 # become ``~/.hermes`` — the real Hermes home — not the broken ``~/.Hermes``).
 _REBRAND_PATTERNS: list[tuple[re.Pattern, str]] = [
-    (re.compile(r'\bOpen[\s-]?Claw\b', re.IGNORECASE), 'NousAI'),
-    (re.compile(r'\bClawdBot\b', re.IGNORECASE), 'NousAI'),
-    (re.compile(r'\bMoltBot\b', re.IGNORECASE), 'NousAI'),
+    (re.compile(r'\bOpen[\s-]?Claw\b', re.IGNORECASE), 'Hermes'),
+    (re.compile(r'\bClawdBot\b', re.IGNORECASE), 'Hermes'),
+    (re.compile(r'\bMoltBot\b', re.IGNORECASE), 'Hermes'),
 ]
 
 
 def _case_preserving_replacement(replacement: str):
-    """Return a re.sub replacement fn that substitutes the identifier form when the
+    """Return a re.sub replacement fn that lowercases the result when the
     matched text was all-lowercase.
 
-    Keeps ``OpenClaw`` → the product name in prose but maps ``openclaw`` → ``hermes`` so a
+    Keeps ``OpenClaw`` → ``Hermes`` but maps ``openclaw`` → ``hermes`` so a
     filesystem path like ``~/.openclaw/config.yaml`` rewrites to
-    ``~/.hermes/config.yaml`` (the real home) instead of a directory that does not exist.
+    ``~/.hermes/config.yaml`` (the real Hermes home) instead of the broken
+    ``~/.Hermes/config.yaml``.
     """
     def _sub(match: re.Match[str]) -> str:
         matched = match.group(0)
         if matched and matched.islower():
-            return "hermes"  # rebrand: keep -- the identifier form: ~/.openclaw -> ~/.hermes, the real home
+            return replacement.lower()
         return replacement
     return _sub
 
@@ -789,7 +790,7 @@ def write_report(output_dir: Path, report: dict[str, Any]) -> None:
         grouped.setdefault(item["status"], []).append(item)
 
     lines = [
-        "# OpenClaw -> NousAI Migration Report",
+        "# OpenClaw -> Hermes Migration Report",
         "",
         f"- Timestamp: {redacted['timestamp']}",
         f"- Mode: {redacted['mode']}",
@@ -1206,7 +1207,7 @@ class Migrator:
             warnings.append(
                 "API keys and other credentials were detected but not imported. "
                 "Re-run with --migrate-secrets to copy supported keys into the "
-                "NousAI env file."
+                "Hermes env file."
             )
         return warnings
 
@@ -1227,7 +1228,7 @@ class Migrator:
                 else "Review the migration report."
             )
             steps.append(
-                "Start a new NousAI session (or /reset) to pick up the imported config."
+                "Start a new Hermes session (or /reset) to pick up the imported config."
             )
         if summary.get("conflict", 0) > 0:
             steps.append(
@@ -1375,7 +1376,7 @@ class Migrator:
             self.record("command-allowlist", source, destination, "skipped", "No allowlist patterns found")
             return
         if not destination.exists():
-            self.record("command-allowlist", source, destination, "skipped", "NousAI config.yaml does not exist yet")
+            self.record("command-allowlist", source, destination, "skipped", "Hermes config.yaml does not exist yet")
             return
 
         config = load_yaml_file(destination)
@@ -2215,12 +2216,12 @@ class Migrator:
         ]
         for candidate in candidates:
             if candidate:
-                self.archive_path(candidate, reason="No direct NousAI destination; archived for manual review")
+                self.archive_path(candidate, reason="No direct Hermes destination; archived for manual review")
 
         for rel in ("workspace/.learnings", "workspace/memory"):
             candidate = self.source_root / rel
             if candidate.exists():
-                self.archive_path(candidate, reason="No direct NousAI destination; archived for manual review")
+                self.archive_path(candidate, reason="No direct Hermes destination; archived for manual review")
 
         partially_extracted = [
             ("openclaw.json", "Selected Hermes-compatible values were extracted; raw OpenClaw config was not copied."),
@@ -2273,7 +2274,7 @@ class Migrator:
                 continue
             if name in existing_mcp and not self.overwrite:
                 self.record("mcp-servers", f"mcp.servers.{name}", f"mcp_servers.{name}", "conflict",
-                            "MCP server already exists in NousAI config")
+                            "MCP server already exists in Hermes config")
                 continue
 
             hermes_srv: dict[str, Any] = {}
@@ -2529,7 +2530,7 @@ class Migrator:
                 self.maybe_backup(hermes_cfg_path)
                 dump_yaml_file(hermes_cfg_path, hermes_cfg)
             self.record("agent-config", "openclaw.json agents.defaults", "config.yaml agent/compression/terminal",
-                        "migrated", "Agent defaults mapped to NousAI config")
+                        "migrated", "Agent defaults mapped to Hermes config")
 
         # Archive multi-agent list
         if agent_list:
@@ -2581,7 +2582,7 @@ class Migrator:
 
         if session.get("reset") or session.get("resetTriggers") or session.get("reset_triggers"):
             self.record("session-config", "session reset timers", None, "skipped",
-                        "NousAI conversations do not reset on idle or daily timers")
+                        "Hermes conversations do not reset on idle or daily timers")
 
         # Archive full session config (identity links, thread bindings, etc.)
         complex_keys = {"identityLinks", "threadBindings", "maintenance", "scope", "sendPolicy"}
@@ -2959,7 +2960,7 @@ class Migrator:
         if not self.output_dir:
             return
         notes = [
-            "# OpenClaw -> NousAI Migration Notes",
+            "# OpenClaw -> Hermes Migration Notes",
             "",
             "This document lists items that require manual attention after migration.",
             "",
@@ -2977,7 +2978,7 @@ class Migrator:
                 "## Archived Items (Manual Review Needed)",
                 "",
                 "These OpenClaw configurations were archived because they don't have a",
-                "direct 1:1 mapping in NousAI. Review each file and recreate manually:",
+                "direct 1:1 mapping in Hermes. Review each file and recreate manually:",
                 "",
             ])
             for item in archived:
@@ -2987,9 +2988,9 @@ class Migrator:
         conflicts = [i for i in self.items if i.status == "conflict"]
         if conflicts:
             notes.extend([
-                "## Conflicts (Existing NousAI Config Not Overwritten)",
+                "## Conflicts (Existing Hermes Config Not Overwritten)",
                 "",
-                "These items already existed in your NousAI config. Re-run with",
+                "These items already existed in your Hermes config. Re-run with",
                 "`--overwrite` to force, or merge manually:",
                 "",
             ])
@@ -3010,8 +3011,8 @@ class Migrator:
             "## IMPORTANT: Archive the OpenClaw Directory",
             "",
             "After migration, your OpenClaw directory still exists on disk with workspace",
-            "state files (todo.json, sessions, logs). If the NousAI agent discovers these",
-            "directories, it may read/write to them instead of the NousAI state, causing",
+            "state files (todo.json, sessions, logs). If the Hermes agent discovers these",
+            "directories, it may read/write to them instead of the Hermes state, causing",
             "confusion (e.g., cron jobs reading a different todo list than interactive sessions).",
             "",
             "**Strongly recommended:** Run `hermes claw cleanup` to rename the OpenClaw",
@@ -3075,15 +3076,15 @@ class Migrator:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Migrate OpenClaw user state into NousAI.")
+    parser = argparse.ArgumentParser(description="Migrate OpenClaw user state into Hermes Agent.")
     parser.add_argument("--source", default=str(Path.home() / ".openclaw"), help="OpenClaw home directory")
-    parser.add_argument("--target", default=os.environ.get("HERMES_HOME") or str(Path.home() / ".hermes"), help="NousAI home directory")
+    parser.add_argument("--target", default=os.environ.get("HERMES_HOME") or str(Path.home() / ".hermes"), help="Hermes home directory")
     parser.add_argument(
         "--workspace-target",
         help="Optional workspace root where the workspace instructions file should be copied",
     )
     parser.add_argument("--execute", action="store_true", help="Apply changes instead of reporting a dry run")
-    parser.add_argument("--overwrite", action="store_true", help="Overwrite existing NousAI targets after backing them up")
+    parser.add_argument("--overwrite", action="store_true", help="Overwrite existing Hermes targets after backing them up")
     parser.add_argument(
         "--migrate-secrets",
         action="store_true",
@@ -3161,7 +3162,7 @@ def main() -> int:
 
     print()
     print("  ╔══════════════════════════════════════════════════════╗")
-    print(f"  ║   OpenClaw -> NousAI Migration   [{mode_label:>8s}]   ║")
+    print(f"  ║   OpenClaw -> Hermes Migration   [{mode_label:>8s}]   ║")
     print("  ╠══════════════════════════════════════════════════════╣")
     print(f"  ║  Source:  {str(report['source_root'])[:42]:<42s}  ║")
     print(f"  ║  Target:  {str(report['target_root'])[:42]:<42s}  ║")

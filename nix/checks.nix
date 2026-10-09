@@ -1227,7 +1227,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
 
           NODE_MAJOR=$("$HERMES_NODE" --version | sed 's/^v//' | cut -d. -f1)
           test "$NODE_MAJOR" -ge 26 || \
-            (echo "FAIL: Node v$NODE_MAJOR < 26, NousAI requires Node 26"; exit 1)
+            (echo "FAIL: Node v$NODE_MAJOR < 26, Hermes requires Node 26"; exit 1)
           echo "PASS: Node v$NODE_MAJOR >= 26"
 
           echo "=== All HERMES_NODE checks passed ==="

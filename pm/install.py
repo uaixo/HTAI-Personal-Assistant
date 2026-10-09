@@ -710,7 +710,7 @@ def _venv_install_lock(*, patient: bool):
         if not held:
             error = InstallError(
                 "venv",
-                f"another NousAI process is installing dependencies (waited {INSTALL_LOCK_TIMEOUT_SECONDS:.0f}s)",
+                f"another Hermes process is installing dependencies (waited {INSTALL_LOCK_TIMEOUT_SECONDS:.0f}s)",
                 "retry in a moment, or run `hermes pm install` to install explicitly",
             )
             receipt.record_refusal("install-busy", str(error))

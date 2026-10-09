@@ -65,7 +65,7 @@ def test_discover_all_plugins_includes_entrypoint_plugins(monkeypatch, tmp_path)
 
     dist = SimpleNamespace(
         version="0.1.0",
-        metadata={"Summary": "Karpathy-style LLM Wikis for NousAI"},
+        metadata={"Summary": "Karpathy-style LLM Wikis for Hermes"},
     )
     entry_point = SimpleNamespace(
         name="wiki",
@@ -91,7 +91,7 @@ def test_discover_all_plugins_includes_entrypoint_plugins(monkeypatch, tmp_path)
         (
             "wiki",
             "0.1.0",
-            "Karpathy-style LLM Wikis for NousAI",
+            "Karpathy-style LLM Wikis for Hermes",
             "entrypoint",
             "adapters.hermes.cli_plugin",
             "wiki",

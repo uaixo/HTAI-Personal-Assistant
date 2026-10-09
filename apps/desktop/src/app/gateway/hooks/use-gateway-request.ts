@@ -108,7 +108,7 @@ export function useGatewayRequest() {
         const conn = await withTimeout(
           desktop.getConnection(),
           RECONNECT_ATTEMPT_TIMEOUT_MS,
-          'Timed out reconnecting to NousAI backend'
+          'Timed out reconnecting to Hermes backend'
         )
 
         if (!ownsForeground()) {
@@ -161,7 +161,7 @@ export function useGatewayRequest() {
       const gateway = gatewayRef.current ?? activeGateway()
 
       if (!gateway) {
-        throw new Error('NousAI gateway unavailable')
+        throw new Error('Hermes gateway unavailable')
       }
 
       // Bind retries to the dispatch owner, not whichever source is focused

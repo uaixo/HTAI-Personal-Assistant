@@ -89,7 +89,7 @@ def _termux_browser_setup_steps(node_installed: bool) -> list[str]:
 
 
 _TERMUX_INSTALL_ALL_FALLBACK_NOTES = (
-    "Termux uses the NousAI APT package: pkg install hermes-agent.",
+    "Termux uses the Hermes APT package: pkg install hermes-agent.",
     "Matrix E2EE extra is excluded on Termux (python-olm currently fails to build).",
     "Local faster-whisper extra is excluded on Termux (ctranslate2/av build path unavailable).",
     "STT fallback: use Groq Whisper (set GROQ_API_KEY) or OpenAI Whisper (set VOICE_TOOLS_OPENAI_KEY).",
@@ -249,7 +249,7 @@ def _check_daytona_backend(issues: list[str]) -> None:
         from daytona import Daytona
         check_ok("daytona SDK", "(installed)")
     except ImportError:
-        _fail_and_issue("daytona SDK not installed", "(run hermes setup terminal)", "Run hermes setup terminal and select Daytona, then restart NousAI", issues)
+        _fail_and_issue("daytona SDK not installed", "(run hermes setup terminal)", "Run hermes setup terminal and select Daytona, then restart Hermes", issues)
 
 
 def _check_vercel_backend(issues: list[str]) -> None:
@@ -263,7 +263,7 @@ def _check_vercel_backend(issues: list[str]) -> None:
              "Vercel Sandbox does not support custom container_disk; use the shared default 51200", issues)
     _require(importlib.util.find_spec("vercel") is not None, ("vercel SDK", "(installed)"),
              ("vercel SDK not installed", "(run hermes setup terminal)"),
-             "Run hermes setup terminal and select Vercel Sandbox, then restart NousAI", issues)
+             "Run hermes setup terminal and select Vercel Sandbox, then restart Hermes", issues)
     auth_status = describe_vercel_auth()
     if auth_status.ok:
         check_ok("Vercel auth", f"({auth_status.label})")

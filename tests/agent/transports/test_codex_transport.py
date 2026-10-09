@@ -232,7 +232,7 @@ class TestCodexBuildKwargs:
         # thread is_github_responses through to the input converter so the
         # id never reaches the request.
         messages = [
-            {"role": "system", "content": "You are NousAI."},
+            {"role": "system", "content": "You are Hermes."},
             {
                 "role": "assistant",
                 "content": "pong",
@@ -262,7 +262,7 @@ class TestCodexBuildKwargs:
 
     def test_non_github_responses_keeps_message_item_id_end_to_end(self, transport):
         messages = [
-            {"role": "system", "content": "You are NousAI."},
+            {"role": "system", "content": "You are Hermes."},
             {
                 "role": "assistant",
                 "content": "pong",

@@ -25,8 +25,6 @@ from itertools import count
 from pathlib import Path
 from typing import Any, Mapping
 
-from hermes_brand import brand_text
-
 logger = logging.getLogger(__name__)
 
 CORE_SURFACE = "core"
@@ -52,17 +50,13 @@ def is_language_id(value: Any) -> bool:
 
 def flatten(node: Any, prefix: str = "", out: dict[str, str] | None = None) -> dict[str, str]:
     """Nested mapping -> ``{dotted.key: text}``. Non-string, non-mapping leaves are dropped (catalogs are
-    text-only); :func:`non_text_leaves` reports them for the validator.
-
-    Every text leaf passes through :func:`hermes_brand.brand_text`: this is the one seam all catalog
-    layers (bundled, overlay, packs; core, tui and desktop surfaces) share, so the shipped YAML can stay
-    byte-identical to upstream while every surface shows the product name."""
+    text-only); :func:`non_text_leaves` reports them for the validator."""
     flat: dict[str, str] = {} if out is None else out
     if isinstance(node, Mapping):
         for key, value in node.items():
             flatten(value, f"{prefix}.{key}" if prefix else str(key), flat)
     elif isinstance(node, str):
-        flat[prefix] = brand_text(node)
+        flat[prefix] = node
     return flat
 
 

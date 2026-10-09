@@ -979,7 +979,7 @@ class TestNativeEnvironmentContracts:
         assert norm_parts[0] == norm_staging, \
             "staging tmpdir must be the first PYTHONPATH entry"
         assert norm_venv not in norm_parts, \
-            "inherited NousAI venv site-packages must be stripped"
+            "inherited Hermes venv site-packages must be stripped"
         assert norm_user_a in norm_parts and norm_user_b in norm_parts, \
             "user PYTHONPATH entries must survive"
         assert norm_parts.index(norm_user_a) > norm_parts.index(norm_staging), \

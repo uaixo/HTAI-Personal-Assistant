@@ -44,7 +44,7 @@ print_help() {
   cat <<EOF
 Usage: $ENTRYPOINT [--persistent] [--from DIR] [--] <command...>
 
-Run a NousAI instance in an isolated sandbox.
+Run a Hermes instance in an isolated sandbox.
 
 Options:
   --persistent    Keep the sandbox dir across restarts (under the worktree

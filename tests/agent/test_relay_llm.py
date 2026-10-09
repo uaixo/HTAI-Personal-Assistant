@@ -1188,7 +1188,7 @@ def test_anthropic_codec_preserves_tool_history_and_cached_system_blocks(relay_t
         "system": [
             {
                 "type": "text",
-                "text": "You are NousAI.",
+                "text": "You are Hermes.",
                 "cache_control": {"type": "ephemeral"},
             }
         ],

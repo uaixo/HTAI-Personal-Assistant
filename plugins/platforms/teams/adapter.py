@@ -410,7 +410,7 @@ class TeamsAdapter(BasePlatformAdapter):
             self._app = App(
                 client_id=self._client_id, client_secret=self._client_secret, tenant_id=self._tenant_id,
                 http_server_adapter=_AiohttpBridgeAdapter(aiohttp_app),
-                client=ClientOptions(headers={"User-Agent": "NousAI"}))
+                client=ClientOptions(headers={"User-Agent": "Hermes"}))
             # Handlers (ours, then plugin on_* decorators) must be wired before initialize(),
             # which registers POST /api/messages on aiohttp_app via the bridge's register_route().
             @self._app.on_message
@@ -794,7 +794,7 @@ _SETUP_CREDENTIALS = (
 _SETUP_INTRO = (  # "" → blank line
     "You'll need the Teams CLI. If you haven't already:", "  npm install -g @microsoft/teams.cli@preview",
     "  teams login", "", "Then expose port 3978 publicly (devtunnel / ngrok / cloudflared),", "and create your bot:",
-    '  teams app create --name "NousAI" --endpoint "https://<tunnel>/api/messages"', "",
+    '  teams app create --name "Hermes" --endpoint "https://<tunnel>/api/messages"', "",
     "The CLI will print CLIENT_ID, CLIENT_SECRET, and TENANT_ID. Paste them below.", "")
 
 

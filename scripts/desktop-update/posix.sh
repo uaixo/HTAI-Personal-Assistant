@@ -250,7 +250,7 @@ on_signal() {
     # Contract C3: the code is already updated, so the interruption is an owed
     # follow-up on an ok result, never "the update failed".
     FINAL_CODE=0
-    DONE_NOTE="NousAI was updated, but the update hand-off was interrupted by $sig before its remaining steps finished. The next launch or hermes update finishes them."
+    DONE_NOTE="Hermes was updated, but the update hand-off was interrupted by $sig before its remaining steps finished. The next launch or hermes update finishes them."
     add_warning "handoff" "interrupted by $sig after the update was committed"
     exit 0
   fi
@@ -325,20 +325,20 @@ notify_fallback() { # status message — renderer-free recovery surface.
   # boot surfaces it in a dialog (handoff-result.ts + main.ts).
   case "$1" in manual|error) ;; *) return 0 ;; esac
   if [ "$(uname)" = "Darwin" ]; then
-    /usr/bin/osascript -e "display notification \"$(printf '%s' "$2" | sed 's/"/\\"/g')\" with title \"NousAI update\"" 2>/dev/null && return 0
+    /usr/bin/osascript -e "display notification \"$(printf '%s' "$2" | sed 's/"/\\"/g')\" with title \"Hermes update\"" 2>/dev/null && return 0
   else
     if command -v notify-send >/dev/null 2>&1; then
-      notify-send -u critical "NousAI update" "$2" 2>/dev/null && return 0
+      notify-send -u critical "Hermes update" "$2" 2>/dev/null && return 0
     fi
     local p
     if command -v zenity >/dev/null 2>&1; then
-      zenity --warning --title="NousAI update" --text="$2" 2>/dev/null &
+      zenity --warning --title="Hermes update" --text="$2" 2>/dev/null &
       p=$!; sleep 1
       kill -0 "$p" 2>/dev/null && return 0
       wait "$p" 2>/dev/null
     fi
     if command -v kdialog >/dev/null 2>&1; then
-      kdialog --title "NousAI update" --sorry "$2" 2>/dev/null &
+      kdialog --title "Hermes update" --sorry "$2" 2>/dev/null &
       p=$!; sleep 1
       kill -0 "$p" 2>/dev/null && return 0
       wait "$p" 2>/dev/null
@@ -568,7 +568,7 @@ linux_gate() {
     [ "$arg" = "--no-sandbox" ] && { GATE=relaunch; return; }
   done
 
-  GATE=manual GATE_MSG="Update complete, but the rebuilt app can't relaunch itself (its sandbox helper needs root ownership). Reopen NousAI to finish."
+  GATE=manual GATE_MSG="Update complete, but the rebuilt app can't relaunch itself (its sandbox helper needs root ownership). Reopen Hermes to finish."
 }
 
 mac_bundle_recover() { # bundle path -- finish or roll back an interrupted swap
@@ -609,8 +609,8 @@ swap_checkpoint() { # step
 
 mac_swap() {
   local rebuilt="" c
-  for c in "$INSTALL_ROOT/apps/desktop/release/mac-arm64/NousAI.app" \
-           "$INSTALL_ROOT/apps/desktop/release/mac/NousAI.app"; do
+  for c in "$INSTALL_ROOT/apps/desktop/release/mac-arm64/Hermes.app" \
+           "$INSTALL_ROOT/apps/desktop/release/mac/Hermes.app"; do
     [ -d "$c" ] && { rebuilt="$c"; break; }
   done
 
@@ -626,7 +626,7 @@ mac_swap() {
     swap_checkpoint start
     if ! "$MAC_DITTO" "$rebuilt" "$RELAUNCH_TARGET.new"; then
       rm -rf "$RELAUNCH_TARGET.new" 2>/dev/null || true
-      DONE_NOTE="NousAI was updated, but the new app could not be staged; the previous app was kept. Run the update again."
+      DONE_NOTE="Hermes was updated, but the new app could not be staged; the previous app was kept. Run the update again."
       add_warning "app-swap" "bundle copy failed; previous app kept"
       return
     fi
@@ -637,15 +637,15 @@ mac_swap() {
     swap_checkpoint staged
     if ! mv "$RELAUNCH_TARGET" "$RELAUNCH_TARGET.old"; then
       rm -rf "$RELAUNCH_TARGET.new" 2>/dev/null || true
-      DONE_NOTE="NousAI was updated, but the new app could not replace the old one; the previous app was kept. Run the update again."
+      DONE_NOTE="Hermes was updated, but the new app could not replace the old one; the previous app was kept. Run the update again."
       add_warning "app-swap" "could not move the old bundle aside; previous app kept"
     elif swap_checkpoint aside; ! mv "$RELAUNCH_TARGET.new" "$RELAUNCH_TARGET"; then
       if mv "$RELAUNCH_TARGET.old" "$RELAUNCH_TARGET"; then
         rm -rf "$RELAUNCH_TARGET.new" 2>/dev/null || true
-        DONE_NOTE="NousAI was updated, but the new app could not be installed; the previous app was restored. Run the update again."
+        DONE_NOTE="Hermes was updated, but the new app could not be installed; the previous app was restored. Run the update again."
         add_warning "app-swap" "bundle install failed; rolled back to the previous app"
       else
-        DONE_NOTE="NousAI was updated, but installing the new app failed and the previous app could not be restored. Reinstall NousAI (the rebuilt app is at $rebuilt)."
+        DONE_NOTE="Hermes was updated, but installing the new app failed and the previous app could not be restored. Reinstall Hermes (the rebuilt app is at $rebuilt)."
         add_warning "app-swap" "bundle install failed AND rollback failed"
       fi
     else
@@ -763,7 +763,7 @@ finish() {
       if ! launch_app; then
         # Even the kept bundle didn't come back: the durable message must
         # carry BOTH facts (update ok, previous app not reopened).
-        FINAL_MSG="$DONE_NOTE NousAI also could not reopen itself - open it manually."
+        FINAL_MSG="$DONE_NOTE Hermes also could not reopen itself - open it manually."
         write_result
       fi
     fi
@@ -773,7 +773,7 @@ finish() {
   else
     # Launch was due and did not land. Downgrade: truthful result for the
     # next boot, manual state held on screen now.
-    FINAL_MSG="Update complete. Reopen NousAI to finish (it could not restart itself)."
+    FINAL_MSG="Update complete. Reopen Hermes to finish (it could not restart itself)."
     MANUAL=1
     write_result
     publish "manual" "$FINAL_MSG"; stop_ui leave-window
@@ -1041,7 +1041,7 @@ if ! marker_claim; then
   # A4: this run changed nothing and owns no result -- the other update (or
   # the Desktop that gave up on this hand-off) reports its own. An older
   # Desktop quits right after spawning us, so bring one back if it is gone.
-  log "Another NousAI update is already running (process $MARKER_REFUSED_PID), or the Desktop gave up on this hand-off. Nothing was changed."
+  log "Another Hermes update is already running (process $MARKER_REFUSED_PID), or the Desktop gave up on this hand-off. Nothing was changed."
   trap - EXIT
   [ "$(uname)" = "Darwin" ] || linux_gate
   launch_app || true
@@ -1093,7 +1093,7 @@ if [ "$DESKTOP_PID" -gt 0 ] 2>/dev/null; then
   _exit_deadline=$(( $(date +%s) + DESKTOP_EXIT_SECONDS ))
   while ident_alive "$DESKTOP_PID" "$DESKTOP_CT" && [ "$(date +%s)" -lt "$_exit_deadline" ]; do sleep 0.3; done
   if ident_alive "$DESKTOP_PID" "$DESKTOP_CT"; then
-    FINAL_CODE=4 FINAL_MSG="Update aborted: the NousAI window (pid $DESKTOP_PID) did not exit within ${DESKTOP_EXIT_SECONDS}s. Nothing was changed. Close NousAI fully and try again."
+    FINAL_CODE=4 FINAL_MSG="Update aborted: the Hermes window (pid $DESKTOP_PID) did not exit within ${DESKTOP_EXIT_SECONDS}s. Nothing was changed. Close Hermes fully and try again."
     log "$FINAL_MSG"; exit "$FINAL_CODE"
   fi
 fi
@@ -1262,7 +1262,7 @@ if [ "$CODE" -eq 0 ]; then FINAL_CODE=0 FINAL_MSG="Update complete." UPDATE_COMM
   # never "finished OK" and never "still on the previous version".
   if printf '%s\n' "$OUT" | grep -Eq '^[[:space:]]*Desktop app build owed: '; then
     APP_REBUILD_FAILED=1
-    DONE_NOTE="NousAI was updated, but the Desktop app could not be rebuilt, so it still runs its old build. Run hermes desktop --force-build in a terminal to rebuild it; the update log has the build error."
+    DONE_NOTE="Hermes was updated, but the Desktop app could not be rebuilt, so it still runs its old build. Run hermes desktop --force-build in a terminal to rebuild it; the update log has the build error."
     add_warning "build" "the Desktop app build is owed by the committed update"
   fi
   # Every other owed follow-up (a gateway still on the old code, a Windows
@@ -1273,16 +1273,16 @@ if [ "$CODE" -eq 0 ]; then FINAL_CODE=0 FINAL_MSG="Update complete." UPDATE_COMM
   if [ -n "$OWED_STEPS" ]; then
     case " $OWED_STEPS " in *" gateway_restart "*) OWED_HINT=" Run hermes gateway restart to move the messaging gateway onto the new code now." ;; *) OWED_HINT="" ;; esac
     if [ -n "$DONE_NOTE" ]; then DONE_NOTE="$DONE_NOTE Follow-up steps still owed: $OWED_STEPS.$OWED_HINT"
-    else DONE_NOTE="NousAI was updated, but some follow-up steps did not finish ($OWED_STEPS). The next launch or hermes update retries them; the update log has the details.$OWED_HINT"; fi
+    else DONE_NOTE="Hermes was updated, but some follow-up steps did not finish ($OWED_STEPS). The next launch or hermes update retries them; the update log has the details.$OWED_HINT"; fi
     add_warning "followup" "owed by the committed update: $OWED_STEPS"
   fi
 elif [ "$CODE" -ne 2 ] && update_committed_after_exit; then
   # Past the commit point: installed, with an owed follow-up (contract C3).
   FINAL_CODE=0 FINAL_MSG="Update complete." UPDATE_COMMITTED=1
   case "$RECEIPT_OUTCOME" in
-    partial) DONE_NOTE="NousAI was updated, but one step is left for you: your local source changes may still be parked in git stash. Run hermes update in a terminal for the exact commands." ;;
-    interrupted) DONE_NOTE="NousAI was updated, but its post-update steps were interrupted. The next launch or hermes update finishes them." ;;
-    *) DONE_NOTE="NousAI was updated, but hermes update exited with code $CODE afterwards. Run hermes update in a terminal to finish any remaining steps." ;;
+    partial) DONE_NOTE="Hermes was updated, but one step is left for you: your local source changes may still be parked in git stash. Run hermes update in a terminal for the exact commands." ;;
+    interrupted) DONE_NOTE="Hermes was updated, but its post-update steps were interrupted. The next launch or hermes update finishes them." ;;
+    *) DONE_NOTE="Hermes was updated, but hermes update exited with code $CODE afterwards. Run hermes update in a terminal to finish any remaining steps." ;;
   esac
   add_warning "update" "hermes update exited $CODE after the commit point (receipt outcome: $RECEIPT_OUTCOME)"
 else
@@ -1292,7 +1292,7 @@ else
   # succeed — tell the user what is actually wrong (#95759).
   if [ "$LEGACY_INSTALL" -eq 1 ] && ! tcc_probe_python "$INSTALL_ROOT/venv/bin/python3" \
       && ! tcc_probe_python "$INSTALL_ROOT/venv/bin/python"; then
-    FINAL_MSG="Update failed: the Python interpreter inside $INSTALL_ROOT/venv cannot start (heal state: $TCC_HEAL_STATE). Reinstall the runtime with the NousAI installer, or run hermes doctor --fix from a terminal if any hermes command still works."
+    FINAL_MSG="Update failed: the Python interpreter inside $INSTALL_ROOT/venv cannot start (heal state: $TCC_HEAL_STATE). Reinstall the runtime with the Hermes installer, or run hermes doctor --fix from a terminal if any hermes command still works."
   fi
 fi
 
@@ -1305,7 +1305,7 @@ if [ "$LEGACY_INSTALL" -eq 1 ] && [ "$CODE" -eq 0 ] && printf '%s' "$OUT" | grep
   publish_stage "Rebuilding Desktop"
   if ! ( trap - TERM; exec "${UPDATE_INVOKE[@]}" desktop --force-build --build-only ) >> "$LOG" 2>&1; then
     APP_REBUILD_FAILED=1
-    DONE_NOTE="NousAI was updated, but the Desktop app rebuild failed - you are running the previous app build. Run hermes desktop --force-build from a terminal to retry."
+    DONE_NOTE="Hermes was updated, but the Desktop app rebuild failed - you are running the previous app build. Run hermes desktop --force-build from a terminal to retry."
     add_warning "desktop-rebuild" "hermes desktop --force-build --build-only failed"
   fi
 fi

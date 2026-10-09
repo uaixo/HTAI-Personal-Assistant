@@ -281,7 +281,7 @@ def _safe_restore_db(src: Path, dst: Path) -> bool:
         except LiveConnectionError as exc2:
             logger.error(
                 "Refusing unlink+move restore of %s: %s Close the in-process "
-                "database handles (or restart NousAI) and retry.",
+                "database handles (or restart Hermes) and retry.",
                 dst, exc2,
             )
             return False
@@ -310,7 +310,7 @@ def _validate_backup_zip(zf: zipfile.ZipFile) -> tuple[bool, str]:
 
     if not found:
         return False, (
-            "zip does not appear to be a NousAI backup "
+            "zip does not appear to be a Hermes backup "
             "(no config.yaml, .env, or state databases found)"
         )
 

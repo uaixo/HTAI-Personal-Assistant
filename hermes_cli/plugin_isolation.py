@@ -121,7 +121,7 @@ def in_process_import_refusal(what: str, *, source: str = "user",
     if source == "bundled" or isolation_mode(config) != ISOLATION_HOST:
         return None
     return (f"{what} runs only in-process, and plugins.isolation is 'host' (third-party plugin code "
-            f"never runs inside the NousAI process); set plugins.isolation: in_process to load it")
+            f"never runs inside the Hermes process); set plugins.isolation: in_process to load it")
 
 
 def user_plugin_host() -> Any:

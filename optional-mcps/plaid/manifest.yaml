@@ -32,6 +32,6 @@ suggest:
     - plaid.com
 
 post_install: |
-  On first connection NousAI opens a browser to authorize with
+  On first connection Hermes opens a browser to authorize with
   Plaid (or run `hermes mcp login plaid`). Approve access,
   then restart the session so tools load.

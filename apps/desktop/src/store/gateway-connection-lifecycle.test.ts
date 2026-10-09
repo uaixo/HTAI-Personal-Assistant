@@ -818,9 +818,9 @@ describe('secondary stalled-dial budget', () => {
       .fn()
       .mockResolvedValueOnce(descriptorFor('homelab', 'bot-a'))
       .mockRejectedValueOnce(stalled)
-      .mockRejectedValueOnce(new Error('Failed to connect to NousAI gateway'))
+      .mockRejectedValueOnce(new Error('Failed to connect to Hermes gateway'))
       .mockRejectedValueOnce(stalled)
-      .mockRejectedValueOnce(new Error('Failed to connect to NousAI gateway'))
+      .mockRejectedValueOnce(new Error('Failed to connect to Hermes gateway'))
       .mockRejectedValue(stalled)
 
     installDesktop({ getConnectionFor })
@@ -889,7 +889,7 @@ describe('secondary stalled-dial budget', () => {
     const getConnectionFor = vi
       .fn()
       .mockResolvedValueOnce(descriptorFor('homelab', 'bot-a'))
-      .mockRejectedValueOnce(new Error('Failed to connect to NousAI gateway'))
+      .mockRejectedValueOnce(new Error('Failed to connect to Hermes gateway'))
 
     installDesktop({ getConnectionFor })
 

@@ -40,7 +40,7 @@ result = agent.run_conversation(
 
 ## API Modes
 
-NousAI supports three API execution modes, resolved from provider selection, explicit args, and base URL heuristics:
+Hermes supports three API execution modes, resolved from provider selection, explicit args, and base URL heuristics:
 
 | API mode | Used for | Client type |
 |----------|----------|-------------|

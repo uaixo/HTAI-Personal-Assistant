@@ -60,7 +60,7 @@ command -v cliclick >/dev/null 2>&1 || brew install --quiet cliclick
 window_geometry() {
   osascript <<'OSA' 2>/dev/null
 tell application "System Events"
-  set procs to (every process whose name contains "NousAI")
+  set procs to (every process whose name contains "Hermes")
   if (count of procs) = 0 then return "no-process"
   set p to item 1 of procs
   if (count of windows of p) = 0 then return "no-window"
@@ -108,9 +108,9 @@ source "$(dirname "${BASH_SOURCE[0]}")/source-driver.sh"
 installed_app() {
   local cand
   for cand in \
-    "$INSTALL_DIR/apps/desktop/release/mac-arm64/NousAI.app" \
-    "$INSTALL_DIR/apps/desktop/release/mac/NousAI.app" \
-    "/Applications/NousAI.app"; do
+    "$INSTALL_DIR/apps/desktop/release/mac-arm64/Hermes.app" \
+    "$INSTALL_DIR/apps/desktop/release/mac/Hermes.app" \
+    "/Applications/Hermes.app"; do
     [ -d "$cand" ] && return 0
   done
   return 1
@@ -154,7 +154,7 @@ FIRST_SHOT=0
 CLICKS=0
 while :; do
   if install_complete; then
-    log "install landed: checkout + source launcher + NousAI.app present"
+    log "install landed: checkout + source launcher + Hermes.app present"
     shot "02-install-landed"
     break
   fi

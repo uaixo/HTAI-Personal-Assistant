@@ -109,9 +109,7 @@ test('channel smoke binds the complete admitted request, not a commit-build iden
       expect(run('identity').status).not.toBe(0)
     }
   } finally { fs.rmSync(temp, { recursive: true, force: true }) }
-  // A dozen real CLI runs: on the four-core runner, sharing the lane with the desktop builder
-  // tests, they have taken more than 15 s.
-}, 60_000)
+}, 15_000)
 
 test('workspace admission rejects reuse and symlink escapes before creating anything outside runner temp', () => {
   const temp = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-paths-')))

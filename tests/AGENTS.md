@@ -1,4 +1,4 @@
-# tests/ — how NousAI tests are written and run
+# tests/ — how Hermes tests are written and run
 
 Applies on top of the root `AGENTS.md`. Read it before adding or changing any test.
 

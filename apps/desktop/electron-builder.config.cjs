@@ -203,7 +203,7 @@ module.exports = {
     // paste onto the stock removable-drive icon). It lives in packaging/ with
     // the background so the `files` whitelist keeps it out of the app bundle.
     icon: 'packaging/dmg-volume.icns',
-    title: 'NousAI Installer',
+    title: 'Hermes Agent Installer',
     // A prebuilt .tiff on purpose, not a PNG plus a @2x sibling: dmg-builder's
     // PNG path runs `tiffutil -cathidpicheck`, which on macOS 26 rewrites both
     // frames to 72 dpi and silently drops the 2x representation. A .tiff is
@@ -280,8 +280,8 @@ module.exports = {
     category: 'Development',
     maintainer: 'Nous Research <support@nousresearch.com>',
     synopsis: light
-      ? 'Remote-only desktop client for NousAI.'
-      : 'Native desktop shell for NousAI.',
+      ? 'Remote-only desktop client for Hermes Agent.'
+      : 'Native desktop shell for Hermes Agent.',
     target: ['AppImage']
   }
 }

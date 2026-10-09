@@ -236,7 +236,7 @@ _DISCORD_NONCONVERSATIONAL_HISTORY_MESSAGE_PATTERNS = (
         re.IGNORECASE,
     ),
     re.compile(
-        r"^\s*(?:✅|❌)\s+NousAI update\s+"
+        r"^\s*(?:✅|❌)\s+Hermes update\s+"
         r"(?:finished|failed|timed out)[\s\S]*$",
         re.IGNORECASE,
     ),
@@ -418,7 +418,7 @@ def _format_privileged_intents_guidance(*, needs_members: bool) -> str:
     lines = [
         "Discord rejected the connection because privileged Gateway Intents "
         "are not enabled for this bot in the Developer Portal.",
-        "NousAI is requesting:",
+        "Hermes is requesting:",
         "  - Message Content Intent (required to read message text)",
     ]
     if needs_members:
@@ -5602,7 +5602,7 @@ class DiscordAdapter(DiscordMediaMixin, DiscordThreadTitlesMixin, DiscordVoiceIn
         )
         try:
             with attempt:
-                await edit(name=cleaned, reason="NousAI semantic session title")
+                await edit(name=cleaned, reason="Hermes semantic session title")
             logger.info(
                 "[%s] Renamed Discord thread %s from %r to %r",
                 self.name, thread_id, current_name, cleaned,
@@ -5638,7 +5638,7 @@ class DiscordAdapter(DiscordMediaMixin, DiscordThreadTitlesMixin, DiscordVoiceIn
             )
             return None
         thread_name = (name or "handoff").strip()[:80] or "handoff"
-        reason = "NousAI session handoff"
+        reason = "Hermes session handoff"
         try:
             create = getattr(parent, "create_thread", None)
             if create is not None:
@@ -5852,14 +5852,14 @@ class DiscordAdapter(DiscordMediaMixin, DiscordThreadTitlesMixin, DiscordVoiceIn
             default_hint = t("platform.discord.prompt.default_hint", default=default) if default else ""
             update_title = t("platform.discord.prompt.update_title")
             embed = discord.Embed(
-                title=_truncate_discord_component_text(f"✦ {update_title}", _DISCORD_EMBED_TITLE_LIMIT),
+                title=_truncate_discord_component_text(f"☤ {update_title}", _DISCORD_EMBED_TITLE_LIMIT),
                 description=f"{prompt}{default_hint}", color=discord.Color.gold(),
             )
             view = UpdatePromptView(
                 session_key=session_key, allowed_user_ids=self._allowed_user_ids,
                 allowed_role_ids=self._allowed_role_ids,
             )
-            content = self._self_contained_prompt_content(f"✦ **{update_title}**", f"{prompt}{default_hint}")
+            content = self._self_contained_prompt_content(f"☤ **{update_title}**", f"{prompt}{default_hint}")
             return {"content": content, "embed": embed, "view": view}, view
         result = await self._send_prompt(chat_id, metadata, _build)
         if result.success and _metadata_marks_nonconversational(metadata):

@@ -109,7 +109,7 @@ export default async function afterPack(context) {
     return
   }
 
-  const productName = context.packager?.appInfo?.productFilename || 'NousAI'
+  const productName = context.packager?.appInfo?.productFilename || 'Hermes'
   const exe = path.join(context.appOutDir, `${productName}.exe`)
 
   // Repair dangling PE certificate tables BEFORE electron-builder signs the

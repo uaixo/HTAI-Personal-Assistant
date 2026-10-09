@@ -190,7 +190,7 @@ test.skipIf(process.platform === 'win32')(
               encoding: 'utf8',
               timeout: 15_000
             }),
-            /NousAI/
+            /Hermes/
           )
           assert.equal(fs.existsSync(poison), false)
         }

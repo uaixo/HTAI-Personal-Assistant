@@ -325,7 +325,7 @@ def check_core_override(report, plugin_dir: Path) -> None:
     hits = core_override_findings(plugin_dir)
     report.add(
         "no core override", not hits,
-        "rebinds NousAI core at runtime (use a public hook, middleware or provider profile): "
+        "rebinds Hermes core at runtime (use a public hook, middleware or provider profile): "
         + "; ".join(hits[:8]) + (f" (+{len(hits) - 8} more)" if len(hits) > 8 else "")
-        if hits else "no runtime rebinds of NousAI core",
+        if hits else "no runtime rebinds of Hermes core",
     )

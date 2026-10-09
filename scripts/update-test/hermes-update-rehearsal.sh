@@ -47,7 +47,7 @@ step() { printf '\n=== %s ===\n' "$*"; }
 usage() {
   if [ -n "$SELF" ] && [ -r "$SELF" ]; then sed -n '2,28p' "$SELF"; exit 0; fi
   cat <<'EOF'
-hermes-update-rehearsal.sh -- run against an EXISTING NousAI install.
+hermes-update-rehearsal.sh -- run against an EXISTING Hermes install.
 
   pre     back up your data, clone both trees, point the update source at a fork
   post    swap the clones back in, exactly as they were
@@ -113,7 +113,7 @@ resolve_paths() {
   if [ -n "${HERMES_DESKTOP_USER_DATA_DIR:-}" ]; then
     USERDATA_DIR="$HERMES_DESKTOP_USER_DATA_DIR"; USERDATA_SOURCE="env"
   else
-    USERDATA_DIR="$HOME/Library/Application Support/NousAI${suffix}"; USERDATA_SOURCE="default"
+    USERDATA_DIR="$HOME/Library/Application Support/Hermes${suffix}"; USERDATA_SOURCE="default"
   fi
   BACKUP_ROOT="$(native_path "$BACKUP_ROOT")"
   HERMES_HOME="$(native_path "$HERMES_HOME")"
@@ -253,11 +253,11 @@ cmd_pre() {
     local procs
     procs="$(pgrep -fl hermes 2>/dev/null | grep -v 'hermes-update-rehearsal' || true)"
     if [ -n "$procs" ]; then
-      warn "NousAI looks like it is running — close the desktop app and the gateway"
+      warn "Hermes looks like it is running — close the desktop app and the gateway"
       warn "before you run 'hermes update', or the dependency sync may fail:"
       printf '    %s\n' "$procs"
     else
-      ok "no NousAI processes running"
+      ok "no Hermes processes running"
     fi
   fi
   local n
@@ -428,7 +428,7 @@ cmd_post() {
 
   step "stopping this home's gateway"
   local hermes_exe
-  hermes_exe="$(resolve_hermes_exe)" || die "no NousAI launcher for $INSTALL_DIR; stop this home's gateway before restoring"
+  hermes_exe="$(resolve_hermes_exe)" || die "no Hermes launcher for $INSTALL_DIR; stop this home's gateway before restoring"
   HERMES_HOME="$HERMES_HOME" "$hermes_exe" gateway stop \
     || die "could not stop this home's gateway; restore has not started"
   ok "stopped this home's gateway (close the desktop app before restoring its data)"
