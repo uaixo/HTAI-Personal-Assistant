@@ -175,7 +175,7 @@ def handler_for(path: str) -> Callable[[str], str] | str | None:
 def _rewrite(path: str, transform: Callable[[str], str], *, write: bool) -> bool:
     file = REPO_ROOT / path
     try:
-        text = file.read_text(encoding="utf-8", newline="")
+        text = file.read_text(encoding="utf-8", newline="")  # windows-footgun: ok (round-trips a BOM as-is)
     except UnicodeDecodeError:
         return False
     try:

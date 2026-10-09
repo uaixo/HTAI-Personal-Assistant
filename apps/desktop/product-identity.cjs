@@ -8,17 +8,21 @@
 /// <reference types="node" />
 'use strict'
 
+// `kebab` feeds appId and the payload CLI name: identifiers an installed build's
+// state and single-instance lock hang off, so they keep their upstream values.
+// `display` and `pascal` are what people see (window titles, installer and
+// archive names) and carry the product brand.
 const variants = {
-  '': { display: 'Hermes', kebab: 'hermes', pascal: 'Hermes' },
+  '': { display: 'NousAI', kebab: 'hermes', pascal: 'NousAI' },
   light: {
-    display: 'Hermes Light',
+    display: 'NousAI Light',
     kebab: 'hermes-light',
-    pascal: 'HermesLight'
+    pascal: 'NousAILight'
   },
   bundled: {
-    display: 'Hermes Agent',
+    display: 'NousAI',
     kebab: 'hermes-bundled',
-    pascal: 'HermesBundled'
+    pascal: 'NousAIBundled'
   }
 }
 
