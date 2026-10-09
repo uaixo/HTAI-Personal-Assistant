@@ -67,7 +67,7 @@ export function reportHandoffResult(host: HandoffReportHost): void {
         type: 'info',
         title: 'NousAI update',
         message: 'NousAI updated, but some follow-up steps need another try',
-        detail: `${result.warnings.join('\n')}\n\nHermes retries them on the next launch or the next update.`
+        detail: `${result.warnings.join('\n')}\n\nNousAI retries them on the next launch or the next update.`
       })
     } else if (result && result.ok && result.manual) {
       // Update landed but the user must act (reopen/reinstall/sandbox). On
