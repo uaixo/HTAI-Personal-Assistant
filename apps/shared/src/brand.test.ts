@@ -6,7 +6,10 @@ describe('brandText', () => {
   it('replaces the upstream product name and glyph in prose', () => {
     expect(brandText('Welcome to Hermes Agent!')).toBe(`Welcome to ${AGENT_NAME}!`)
     expect(brandText('Hermes is working on 2 chats.')).toBe(`${AGENT_NAME} is working on 2 chats.`)
-    expect(brandText("Hermes' home, (Hermes)")).toBe(`${AGENT_NAME}' home, (${AGENT_NAME})`)
+    expect(brandText("Hermes' home, (Hermes)")).toBe(`${AGENT_NAME}'s home, (${AGENT_NAME})`)
+    expect(brandText("Hermes’ own bot; the 'Hermes' skill; 'Run Hermes' now")).toBe(
+      `${AGENT_NAME}’s own bot; the '${AGENT_NAME}' skill; 'Run ${AGENT_NAME}' now`
+    )
     expect(brandText('/Applications/Hermes.app and Hermes.exe')).toBe(
       `/Applications/${AGENT_NAME}.app and ${AGENT_NAME}.exe`
     )

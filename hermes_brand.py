@@ -31,11 +31,26 @@ SYMBOL = "✦"
 # (joined) — and the Hermes model family (``Hermes 4``, ``Hermes 3 & 4``, ``Hermes-3-Llama``).
 # ``Hermes.app`` / ``Hermes.exe`` ARE renamed: the desktop bundle is named after the product.
 _LEGACY_BRAND = re.compile(r"(?<![A-Za-z0-9_.\-])Hermes(?: Agent)?(?![A-Za-z0-9_\-])(?! \d)")
+# ``Hermes' tool store`` -> ``NousAI's tool store``: a bare-apostrophe possessive reads as a typo on a
+# name that does not end in s. Only a word-bounded name followed by ``' <word>`` qualifies, so the
+# closing quote of ``'Hermes'`` (opened by the quote before the name) is never mistaken for one.
+_LEGACY_POSSESSIVE = re.compile(r"(?<![A-Za-z0-9_.\-'’])Hermes(?: Agent)?(?P<apostrophe>['’])(?= [A-Za-z])")
 _LEGACY_SYMBOL = "☤"
+
+
+def _possessive(match: re.Match[str]) -> str:
+    """``NousAI's`` for a possessive; untouched when the apostrophe closes a quote opened earlier on
+    the line (``'Run Hermes' now``), which the brand rule then handles as a plain name."""
+    text, start, apostrophe = match.string, match.start(), match.group("apostrophe")
+    line_start = text.rfind("\n", 0, start) + 1
+    if text.count(apostrophe, line_start, start) % 2:
+        return match.group(0)
+    return f"{AGENT_NAME}{apostrophe}s"
 
 
 def brand_text(text: str) -> str:
     """``text`` with every upstream product name and glyph replaced by the brand. Idempotent."""
+    text = _LEGACY_POSSESSIVE.sub(_possessive, text)
     return _LEGACY_BRAND.sub(AGENT_NAME, text).replace(_LEGACY_SYMBOL, SYMBOL)
 
 

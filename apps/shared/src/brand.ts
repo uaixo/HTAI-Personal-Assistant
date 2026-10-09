@@ -16,11 +16,24 @@ export const SYMBOL = '✦'
 // `OpenHermes`) and the Hermes model family (`Hermes 4`) are left alone, while
 // `Hermes.app` / `Hermes.exe` follow the product name.
 const LEGACY_BRAND = /(?<![A-Za-z0-9_.-])Hermes(?: Agent)?(?![A-Za-z0-9_-])(?! \d)/g
+// `Hermes' tool store` -> `NousAI's tool store`; the closing quote of `'Hermes'`
+// (opened by the quote before the name) never qualifies.
+const LEGACY_POSSESSIVE = /(?<![A-Za-z0-9_.\-'’])Hermes(?: Agent)?(['’])(?= [A-Za-z])/g
 const LEGACY_SYMBOL = /☤/g
+
+/** `NousAI's` for a possessive; untouched when the apostrophe closes a quote
+ *  opened earlier on the line (`'Run Hermes' now`), which the brand rule then
+ *  handles as a plain name. */
+function possessive(match: string, apostrophe: string, offset: number, whole: string): string {
+  const lineStart = whole.lastIndexOf('\n', offset) + 1
+  const quotesBefore = whole.slice(lineStart, offset).split(apostrophe).length - 1
+
+  return quotesBefore % 2 === 1 ? match : `${AGENT_NAME}${apostrophe}s`
+}
 
 /** `text` with every upstream product name and glyph replaced by the brand. Idempotent. */
 export function brandText(text: string): string {
-  return text.replace(LEGACY_BRAND, AGENT_NAME).replace(LEGACY_SYMBOL, SYMBOL)
+  return text.replace(LEGACY_POSSESSIVE, possessive).replace(LEGACY_BRAND, AGENT_NAME).replace(LEGACY_SYMBOL, SYMBOL)
 }
 
 type Leaf = (...args: unknown[]) => unknown
