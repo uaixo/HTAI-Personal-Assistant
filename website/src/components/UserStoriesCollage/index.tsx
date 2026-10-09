@@ -174,9 +174,9 @@ export default function UserStoriesCollage(): React.JSX.Element {
       <div className={styles.hero}>
         <h1>User Stories &amp; Use Cases</h1>
         <p>
-          What the NousAI community is actually building. Every tile
+          What the Hermes Agent community is actually building. Every tile
           below links to a real post, issue, video, or gist where someone
-          describes how they use NousAI &mdash; scraped from X, GitHub, Reddit,
+          describes how they use Hermes &mdash; scraped from X, GitHub, Reddit,
           Hacker News, YouTube, blogs, and podcasts.
         </p>
         <div className={styles.meta}>
@@ -293,7 +293,7 @@ export default function UserStoriesCollage(): React.JSX.Element {
       )}
 
       <div className={styles.footer}>
-        Built something with NousAI?{' '}
+        Built something with Hermes?{' '}
         <a
           href="https://github.com/NousResearch/hermes-agent/edit/main/website/src/data/userStories.json"
           target="_blank"

@@ -260,7 +260,7 @@ def _open_continuable_cron_thread(job: dict, adapter, chat_id: str, loop) -> Opt
     create_thread = getattr(adapter, "create_handoff_thread", None)
     if not callable(create_thread) or loop is None:
         return None
-    thread_name = f"NousAI — {_cron_display_name(job)}"
+    thread_name = f"Hermes — {_cron_display_name(job)}"
     try:
         from agent.async_utils import safe_schedule_threadsafe
         coro = create_thread(str(chat_id), thread_name)
@@ -886,7 +886,7 @@ def _deliver_to_bot_chat(job: dict, content: str, profile: str, *, deferred: Opt
     else:
         hermes_bin = shutil.which("hermes")
         if not hermes_bin:
-            return ("NousAI could not deliver this result to Bot Chat: the `hermes` command was not found. "
+            return ("Hermes could not deliver this result to Bot Chat: the `hermes` command was not found. "
                     "The result is saved; run `hermes cron runs` to see it, or `hermes doctor` if this keeps happening")
         argv = [hermes_bin]
 
@@ -942,7 +942,7 @@ def _deliver_to_bot_chat(job: dict, content: str, profile: str, *, deferred: Opt
                 "Job '%s': bot-chat delivery to profile '%s' failed at %s: %s",
                 job_id, profile_label, home, tail)
             return (
-                f"NousAI could not deliver this result to Bot Chat (profile '{profile_label}'). "
+                f"Hermes could not deliver this result to Bot Chat (profile '{profile_label}'). "
                 "The result is saved; run `hermes cron runs` to see it, or `hermes doctor` if this keeps happening"
                 f". Details: {tail}")
         logger.info("Job '%s': delivered to Bot Chat of profile '%s'", job_id, profile_label)
@@ -988,7 +988,7 @@ def _deliver_to_bot_chat(job: dict, content: str, profile: str, *, deferred: Opt
             "Job '%s': bot-chat delivery to profile '%s' failed: %s", job_id, profile_label,
             str(e) or type(e).__name__, exc_info=True)
         return (
-            f"NousAI could not deliver this result to Bot Chat (profile '{profile_label}'). "
+            f"Hermes could not deliver this result to Bot Chat (profile '{profile_label}'). "
             "The result is saved; run `hermes cron runs` to see it, or `hermes doctor` if this keeps happening")
     finally:
         if query_file:

@@ -122,7 +122,7 @@ class DispatchResult:
     acting on the fallback rule rather than explicit assignments."""
     skipped_nonspawnable: list[str] = field(default_factory=list)
     """Ready task ids whose assignee names a control-plane lane (e.g. a Claude
-    Code terminal like ``orion-cc``), not a NousAI profile. Expected steady-state
+    Code terminal like ``orion-cc``), not a Hermes profile. Expected steady-state
     on multi-lane setups, NOT operator-actionable; tracked apart so health
     telemetry can tell "stuck" from "correctly idle"."""
     skipped_per_profile_capped: list[tuple[str, str, int]] = field(default_factory=list)
@@ -975,7 +975,7 @@ _PROTOCOL_VIOLATION_ERROR = (
 
 
 # Rich panel/rule chrome around the rendered response, and the CLI's own preamble lines.
-_LOG_CHROME = re.compile(r"[─━═╭╮╰╯│┃┌┐└┘]+|✦\s*NousAI")
+_LOG_CHROME = re.compile(r"[─━═╭╮╰╯│┃┌┐└┘]+|☤\s*Hermes")
 
 
 def _exit_summary_marker() -> str:
@@ -2963,7 +2963,7 @@ def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None) -
         log_f.close()
         raise RuntimeError(
             "`hermes` executable not found on PATH. "
-            "Install NousAI or activate its venv before running the kanban dispatcher."
+            "Install Hermes Agent or activate its venv before running the kanban dispatcher."
         )
     # Intentionally NOT closing log_f: the child keeps writing after return;
     # the OS-level FD stays open in the child until it exits.

@@ -685,7 +685,7 @@ def interactive_setup() -> None:
     else:
         print_info("⚠️  No allowlist set - anyone who can message the bot can use it!")
     print()
-    info("📬 Home Channel: where NousAI delivers cron job results and notifications.",
+    info("📬 Home Channel: where Hermes delivers cron job results and notifications.",
          "   To get a channel ID: click channel name → View Info → copy the ID",
          "   You can also set this later by typing /set-home in a Mattermost channel.")
     home_channel = prompt("Home channel ID (leave empty to set later with /set-home)").strip()

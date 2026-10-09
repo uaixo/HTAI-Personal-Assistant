@@ -191,7 +191,7 @@ def tail_log(
     log_path = log_file_path(log_name)
     if not log_path.exists():
         print(f"Log file not found: {log_path}")
-        print("(Logs are created when NousAI runs — try 'hermes chat' first)")
+        print("(Logs are created when Hermes runs — try 'hermes chat' first)")
         sys.exit(1)
 
     since_dt = None

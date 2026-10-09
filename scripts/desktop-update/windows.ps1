@@ -196,7 +196,7 @@ try {
     $OutputEncoding = [System.Text.Encoding]::UTF8
 } catch {}
 $script:Ui = $null
-$script:UiStage = "NousAI will open once done."   # until the first gate; matches ui.html
+$script:UiStage = "Hermes will open once done."   # until the first gate; matches ui.html
 $script:UiStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 
 # ── The shim: repo-owned HTML in a chromeless default-browser app window ───
@@ -523,7 +523,7 @@ function Show-ProgressWindow {
             $mute = [System.Drawing.ColorTranslator]::FromHtml("#A8A8A8")
         }
         $form = New-Object System.Windows.Forms.Form
-        $form.Text = "NousAI"
+        $form.Text = "Hermes"
         $form.FormBorderStyle = "FixedSingle"
         $form.MaximizeBox = $false
         $form.MinimizeBox = $false
@@ -537,7 +537,7 @@ function Show-ProgressWindow {
         $bar.MarqueeAnimationSpeed = 30
         $bar.SetBounds(60, 128, 160, 8)
         $title = New-Object System.Windows.Forms.Label
-        $title.Text = "Updating NousAI"
+        $title.Text = "Updating Hermes"
         $title.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 12)
         $title.ForeColor = $fore
         $title.TextAlign = "MiddleCenter"
@@ -1485,7 +1485,7 @@ try {
         # (or the Desktop that gave up on this hand-off) reports its own.
         $finalCode = 2
         $blocker = if ($script:MarkerBlocker -gt 0) { " (process $($script:MarkerBlocker))" } else { "" }
-        $finalMsg = "Another NousAI update is already running$blocker, or the Desktop gave up on this hand-off. Nothing was changed."
+        $finalMsg = "Another Hermes update is already running$blocker, or the Desktop gave up on this hand-off. Nothing was changed."
         Write-HandoffLog $finalMsg
         exit $finalCode
     }
@@ -1550,13 +1550,13 @@ try {
     }
 
     # -- 1. Wait for the Desktop to exit (FAIL CLOSED) ----------------------
-    Publish-UiProgress "Waiting for NousAI to close"
+    Publish-UiProgress "Waiting for Hermes to close"
     if ($DesktopPid -gt 0) {
         # Identity, not pid: the Desktop's creation time was pinned at start.
         if (-not (Wait-DesktopExit $script:DesktopExitSeconds)) {
             # The running Desktop still owns application outputs being replaced.
             $finalCode = 4
-            $finalMsg = "Update aborted: the NousAI window (pid $DesktopPid) did not exit within $($script:DesktopExitSeconds)s. Nothing was changed. Close NousAI fully and try again."
+            $finalMsg = "Update aborted: the Hermes window (pid $DesktopPid) did not exit within $($script:DesktopExitSeconds)s. Nothing was changed. Close Hermes fully and try again."
             Write-HandoffLog $finalMsg
             exit $finalCode
         }
@@ -1701,7 +1701,7 @@ try {
             $verifyFailure = $_.Exception.Message
         }
         if ($verifyFailure) {
-            Add-Followup "verify: $verifyFailure" "the new Desktop build could not be verified. Nothing was removed. If NousAI does not start normally, run 'hermes desktop --force-build' in a terminal to rebuild it." -Manual
+            Add-Followup "verify: $verifyFailure" "the new Desktop build could not be verified. Nothing was removed. If Hermes does not start normally, run 'hermes desktop --force-build' in a terminal to rebuild it." -Manual
         }
     }
 
@@ -1760,14 +1760,14 @@ try {
         if ($script:Committed) {
             # C3: the update landed; only a follow-up step outlived its cancellation.
             $finalCode = 0
-            Add-Followup "follow-up processes could not be stopped" "a follow-up step's processes could not be stopped, so NousAI was not reopened. Reopen NousAI once they finish, or restart Windows first." -Manual
-            $finalMsg = "NousAI was updated, but " + ($script:FollowupText -join " Also, ")
+            Add-Followup "follow-up processes could not be stopped" "a follow-up step's processes could not be stopped, so Hermes was not reopened. Reopen Hermes once they finish, or restart Windows first." -Manual
+            $finalMsg = "Hermes was updated, but " + ($script:FollowupText -join " Also, ")
             Write-Result $true $finalCode $finalMsg $true
             Write-HandoffLog $finalMsg
             Show-ManualFinale $finalMsg
         } else {
             $finalCode = 7
-            $finalMsg = "Update recovery could not stop every updater process. NousAI was not restarted to avoid overlapping the active install. Wait for it to finish or restart Windows, then reopen NousAI."
+            $finalMsg = "Update recovery could not stop every updater process. Hermes was not restarted to avoid overlapping the active install. Wait for it to finish or restart Windows, then reopen Hermes."
             Write-Result $false $finalCode $finalMsg
             Write-HandoffLog $finalMsg
             Show-ErrorFinale $finalMsg
@@ -1775,7 +1775,7 @@ try {
         Close-ProgressWindow
     } else {
         if ($finalCode -eq 0 -and $script:FollowupText.Count -gt 0) {
-            $finalMsg = "NousAI was updated, but " + ($script:FollowupText -join " Also, ")
+            $finalMsg = "Hermes was updated, but " + ($script:FollowupText -join " Also, ")
         }
         $manualAction = $finalCode -eq 0 -and $script:ManualFollowup
         Write-Result ($finalCode -eq 0) $finalCode $finalMsg $manualAction
@@ -1797,12 +1797,12 @@ try {
                 [void](Start-DesktopRelaunch)
             }
         } else {
-            Publish-UiProgress "Opening NousAI"
+            Publish-UiProgress "Opening Hermes"
             $cameBack = Start-DesktopRelaunch
             if (-not $cameBack -and $RelaunchExe) {
                 # Launch was due and did not verifiably land: truthful result
                 # for the next boot, manual state held on screen now.
-                $finalMsg = "Update complete. Reopen NousAI to finish (it could not restart itself)."
+                $finalMsg = "Update complete. Reopen Hermes to finish (it could not restart itself)."
                 Write-Result $true 0 $finalMsg $true
                 Show-ManualFinale $finalMsg
             }

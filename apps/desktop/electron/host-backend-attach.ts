@@ -264,7 +264,7 @@ async function findHostBackend(
       unconfirmed = true
     } else if (attached) {
       deps.log(
-        `[attach] attached to the running NousAI backend on ${attached.baseUrl} ` +
+        `[attach] attached to the running Hermes backend on ${attached.baseUrl} ` +
           `(pid ${attached.pid}, registered by profile "${record.profile || 'default'}"); spawning nothing`
       )
 

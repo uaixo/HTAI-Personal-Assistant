@@ -133,11 +133,11 @@ def _ensure_tui_workspace(tui_dir: Path) -> None:
         return
 
     print(
-        "Error: the TUI workspace is missing from this NousAI checkout.\n"
+        "Error: the TUI workspace is missing from this Hermes checkout.\n"
         f"Expected directory: {tui_dir}\n"
         "This usually means `hermes update` left tracked ui-tui files deleted.\n"
         "Recovery:\n"
-        "  1. From the NousAI checkout, run `git restore -- ui-tui`\n"
+        "  1. From the Hermes checkout, run `git restore -- ui-tui`\n"
         "  2. Run `npm install --silent --no-fund --no-audit --progress=false`\n"
         "  3. Retry `hermes --tui`\n"
         "If the checkout is still inconsistent, run `hermes update --force`.",
@@ -466,7 +466,7 @@ def _launch_tui(
     # preserve_inherited=False keeps --tui and other flags out of the subcommand.
     if code == 42:
         from hermes_cli.relaunch import relaunch
-        print("\n✦ Launching update...\n")
+        print("\n☤ Launching update...\n")
         relaunch(["update"], preserve_inherited=False)
 
     sys.exit(code)

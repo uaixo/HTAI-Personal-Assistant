@@ -1,8 +1,6 @@
-import { brandCatalog } from "@hermes/shared/brand";
 import type { Translations } from "./types";
 
-// Branded as it loads: direct importers see the same text as TRANSLATIONS.
-export const en: Translations = brandCatalog({
+export const en: Translations = {
   common: {
     save: "Save",
     saving: "Saving...",
@@ -933,4 +931,4 @@ export const en: Translations = brandCatalog({
       confirmManyTitle: "Delete {n} tasks?",
     },
   },
-});
+};

@@ -75,7 +75,7 @@ RestartPreventExitStatus=78
         from hermes_cli import gateway as gw
 
         installed = """[Unit]
-Description=NousAI Gateway
+Description=Hermes Gateway
 
 [Service]
 Type=simple

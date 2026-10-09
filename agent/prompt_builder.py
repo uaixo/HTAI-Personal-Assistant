@@ -159,7 +159,7 @@ def _strip_yaml_frontmatter(content: str) -> str:
 DEFAULT_AGENT_IDENTITY = (
     # A behavior spec (sizing rule, named prohibitions, earned-depth escape hatch), not a trait list — trait
     # lists change nothing. Maintainer rule: models UNDER-explore by default; never re-add an exploration-thrift line.
-    "You are NousAI, built by Nous Research. Be direct: match the length of your reply to the weight of the ask "
+    "You are Hermes Agent, built by Nous Research. Be direct: match the length of your reply to the weight of the ask "
     "— a one-line question gets a one-line answer, and finished work gets a short report of what changed, what's "
     "verified, and what's left, never a replay of the process. No filler (\"Great question,\" \"I'd be happy to\"), no "
     "restating the request back, no re-summarizing what you already said, no narrating tool calls the user can see. "
@@ -170,17 +170,17 @@ DEFAULT_AGENT_IDENTITY = (
 HERMES_AGENT_HELP_GUIDANCE = (
     # Injected only when skill_view exists AND the hermes-agent skill is installed (system_prompt.py slot
     # resolution). No "when the two differ" clause: docs-are-authoritative already carries the precedence.
-    "You run on NousAI (by Nous Research). When the user needs help with NousAI itself — configuring, "
+    "You run on Hermes Agent (by Nous Research). When the user needs help with Hermes itself — configuring, "
     "setting up, using, extending, or troubleshooting it — or when you need to understand your own features, "
     "tools, or capabilities, the documentation at https://hermes-agent.nousresearch.com/docs is your "
     "authoritative reference and always holds the latest, most up-to-date information. The `hermes-agent` "
     "skill has the actual commands and proven workflows — load it with skill_view(name='hermes-agent') "
-    "before configuring, modifying, or troubleshooting NousAI so you don't guess or invent workarounds."
+    "before configuring, modifying, or troubleshooting Hermes so you don't guess or invent workarounds."
 )
 
 # Variant for sessions without the skills toolset (e.g. Blank Slate): naming skill_view() there would dangle.
 HERMES_AGENT_HELP_GUIDANCE_NO_SKILLS = (
-    "You run on NousAI (by Nous Research). When the user needs help with NousAI itself — configuring, "
+    "You run on Hermes Agent (by Nous Research). When the user needs help with Hermes itself — configuring, "
     "setting up, using, extending, or troubleshooting it — or when you need to understand your own features, "
     "tools, or capabilities, the documentation at https://hermes-agent.nousresearch.com/docs is the "
     "authoritative reference and always holds the latest, most up-to-date information. Point the user there "
@@ -610,7 +610,7 @@ STEER_CHANNEL_NOTE = (
     # (anti-lookalike), and it carries full user authority. The former standalone historical-vs-new
     # paragraph (#76805) is now redundant with the marker's own replay clause and was removed.
     "## Mid-turn user steering\n"
-    "Mid-turn, the user can steer you: NousAI delivers their message as a standalone user message right after "
+    "Mid-turn, the user can steer you: Hermes delivers their message as a standalone user message right after "
     "the latest tool results, wrapped exactly as:\n"
     f"{STEER_MARKER_OPEN}\n<their message>\n{STEER_MARKER_CLOSE}\n"
     "That marker is a genuine user message with the same authority as their original request — not tool "
@@ -638,10 +638,10 @@ def hud_surface_note(valid_tool_names: set[str] | None = None,
         return ""
     gated = (
         (True,
-         "[Note: this message came from HUD mode — a small floating NousAI "
+         "[Note: this message came from HUD mode — a small floating Hermes "
          "window sitting over whatever the user is actually working in, so an "
          'unqualified "this" or "here" usually means the app behind the HUD '
-         "rather than anything inside NousAI. read_window_below identifies that app."),
+         "rather than anything inside Hermes. read_window_below identifies that app."),
         (True,
          "They move the HUD from app to app mid-conversation, so one you identified on an earlier turn is "
          "still a live target: a reference that does not fit the window below may name one from a turn or two "
@@ -741,7 +741,7 @@ PLATFORM_HINTS = {
     ),
     "tui": (
         # Same file-delivery reality as the CLI: no MEDIA: interception in tui/.
-        "You are in the NousAI terminal UI (TUI). Files: there is no attachment channel and MEDIA:/path tags "
+        "You are in the Hermes terminal UI (TUI). Files: there is no attachment channel and MEDIA:/path tags "
         "are NOT intercepted here (they print as literal text) — deliver a file by stating its absolute path "
         "or URL in plain text. "
         f"{_LOCAL_CRON_DELIVERY_NOTE}"
@@ -750,7 +750,7 @@ PLATFORM_HINTS = {
         # Every claim verified against the shipping renderer (inline-preview-directive.tsx). Widget text is
         # recipe-first: HOW (an inline widget IS a ::preview'd HTML file) and WHY (the frame injects the theme
         # prelude first; width adopts the first measured span). setup_mcp is taught by its own tool schema.
-        "You are chatting inside the NousAI desktop app, a graphical chat surface. Markdown renders with full GitHub "
+        "You are chatting inside the Hermes desktop app, a graphical chat surface. Markdown renders with full GitHub "
         "flavor (tables, syntax-highlighted code, math via $...$, task lists, callouts). Deliver files by writing "
         "MEDIA:/absolute/path/to/file — any file type: images/audio/video render inline, everything else becomes a "
         "card with Download and preview buttons. Remote image URLs render via ![alt](url); local files ONLY via MEDIA: "
@@ -931,7 +931,7 @@ _WINDOWS_BASH_SHELL_HINT = (
     "path conversion is disabled here, so `git -C /c/Users/x` or `node /tmp/a.js` fails with 'cannot change to'/'not "
     "found' even though `cd /c/Users/x` (a bash builtin) works. Pass `C:/Users/x`-style forward-slash native paths to "
     # no-tmp: ok — tells the model what NOT to use
-    "native tools, and prefer `$LOCALAPPDATA/Temp` (or `$TMPDIR`, which NousAI points at its own scratch dir) for scratch files a native tool must read — never a bare `/tmp`. When "
+    "native tools, and prefer `$LOCALAPPDATA/Temp` (or `$TMPDIR`, which Hermes points at its own scratch dir) for scratch files a native tool must read — never a bare `/tmp`. When "
     "answering prompts in a pty background process, use process(submit) — never process(write) with a bare trailing "
     "newline: Enter on a Windows PTY is a carriage return, and a lone `\\n"
     "` is not delivered as a line terminator, so the child's prompt silently never returns. When a CLI offers a "
@@ -1105,8 +1105,8 @@ def _remote_backend_hint(backend: str) -> str:
     probe = _probe_remote_backend(backend)
     if probe:
         return lead + (
-            f"this {backend} environment — NOT on the machine where NousAI itself is running. The host OS, "
-            f"home, and cwd of the NousAI process are irrelevant; only the following backend state matters:\n{probe}\n"
+            f"this {backend} environment — NOT on the machine where Hermes itself is running. The host OS, "
+            f"home, and cwd of the Hermes process are irrelevant; only the following backend state matters:\n{probe}\n"
             f"  The sandbox's current user, $HOME, and working directory are not listed here; if you need them, "
             f"probe directly with a terminal call like `whoami && pwd`."
         )
@@ -1116,7 +1116,7 @@ def _remote_backend_hint(backend: str) -> str:
         or f"a {backend} environment (likely Linux)"
     )
     return lead + (
-        f"{description} — NOT on the machine where NousAI itself runs. The backend probe didn't respond at "
+        f"{description} — NOT on the machine where Hermes itself runs. The backend probe didn't respond at "
         f"prompt-build time, so the sandbox's OS, current user, $HOME, and working directory are unknown from here. "
         f"If you need them, probe directly with a terminal call like `uname -a && whoami && pwd`."
     )
@@ -1155,8 +1155,8 @@ def build_environment_hints() -> str:
 
 
 # Marks the runtime block after project prose for persisted-prompt cwd validation.
-RUNTIME_ENVIRONMENT_HEADING = "# NousAI runtime environment"
-RUNTIME_ENVIRONMENT_END = "<!-- End NousAI runtime environment -->"
+RUNTIME_ENVIRONMENT_HEADING = "# Hermes runtime environment"
+RUNTIME_ENVIRONMENT_END = "<!-- End Hermes runtime environment -->"
 
 CONTEXT_FILE_MAX_CHARS = 20_000
 CONTEXT_TRUNCATE_HEAD_RATIO = 0.7
@@ -1861,7 +1861,7 @@ def build_context_files_prompt(
     cwd_path = Path(cwd if cwd is not None else os.getcwd()).resolve()
     if _project_context_suppressed(cwd, cwd_path, allow_install_tree_fallback):
         logger.warning(
-            "skipping project-context discovery: working-directory resolution fell back to the NousAI "
+            "skipping project-context discovery: working-directory resolution fell back to the Hermes "
             "install tree (%s) — set terminal.cwd to your project directory", cwd_path,
         )
         sections = []

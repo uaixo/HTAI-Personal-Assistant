@@ -253,10 +253,10 @@ function PluginCard({
           <a
             className={styles.pickBtn}
             href={desktopInstallLink(plugin.name)}
-            title="Opens the Install Plugin dialog in NousAI Desktop at the reviewed version. No app? Use the install command below."
+            title="Opens the Install Plugin dialog in Hermes Desktop at the reviewed version. No app? Use the install command below."
             onClick={(e) => e.stopPropagation()}
           >
-            Open in NousAI Desktop
+            Open in Hermes Desktop
           </a>
         )}
 
@@ -543,13 +543,13 @@ export default function PluginCatalogPage() {
   return (
     <Layout
       title="Plugin Catalog"
-      description="Give NousAI new powers: reviewed plugins you can install in one click"
+      description="Give Hermes new powers: reviewed plugins you can install in one click"
     >
       <div className={`${styles.page} ${pickerMode ? styles.pickerMode : ""}`}>
         <header className={styles.hero}>
           <div className={styles.heroGlow} />
           <div className={styles.heroContent}>
-            <p className={styles.heroEyebrow}>NousAI</p>
+            <p className={styles.heroEyebrow}>Hermes Agent</p>
             <h1 className={styles.heroTitle}>Plugin Catalog</h1>
             <nav className={styles.crossNav} aria-label="Catalog pages">
               <Link className={styles.crossNavLink} to="/skills">
@@ -560,7 +560,7 @@ export default function PluginCatalogPage() {
               </span>
             </nav>
             <p className={styles.heroSub}>
-              Give NousAI new powers. Memory, voice, messaging, browsing, Desktop panes and more,
+              Give Hermes new powers. Memory, voice, messaging, browsing, Desktop panes and more,
               built by the community.
               {loadError && (
                 <span style={{ color: "#f87171", marginLeft: 8 }}>
@@ -773,7 +773,7 @@ export default function PluginCatalogPage() {
               <div className={styles.emptyIcon}>{"\u{1F331}"}</div>
               <h3 className={styles.emptyTitle}>The catalog is just getting started</h3>
               <p className={styles.emptyDesc}>
-                The plugin catalog is a curated, human-reviewed list of NousAI
+                The plugin catalog is a curated, human-reviewed list of Hermes
                 plugins — each entry pinned to an exact commit. Want yours listed?
                 Submissions are open.
               </p>

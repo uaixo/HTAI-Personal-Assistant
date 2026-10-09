@@ -5,8 +5,6 @@
  * descendants belong to other lifecycle owners and are protected.
  */
 
-import { PRODUCT_IDENTITY } from './product-identity'
-
 /** One running process, reduced to what the reap decision needs. */
 export interface RunningProcess {
   pid: number
@@ -66,18 +64,14 @@ export interface ReapOutcome {
   skipped: boolean
 }
 
-/** The app's own image. Its name follows the product brand, not the `hermes` runtime. */
-const OWN_IMAGE = `${PRODUCT_IDENTITY.windowsExecutableName}.exe`.toLowerCase()
-
-/** Shared interpreters and entry points are not owned by a desktop window,
- * nor is the app's own image. Do not parse argv to decide which Python flags
- * or launcher forms qualify. The updater owns their lifecycle; quit only
- * sweeps detached tools.
+/** Shared interpreters and entry points are not owned by a desktop window.
+ * Do not parse argv to decide which Python flags or launcher forms qualify.
+ * The updater owns their lifecycle; quit only sweeps detached tools.
  */
 function isSharedRuntime(imagePath: string): boolean {
   const image = imagePath.replace(/^.*[\\/]/, '').toLowerCase()
 
-  return image === OWN_IMAGE || /^(?:pythonw?(?:[0-9.]+)?|node|hermes(?:-agent|-acp)?)(?:\.exe|\.cmd)?$/.test(image)
+  return /^(?:pythonw?(?:[0-9.]+)?|node|hermes(?:-agent|-acp)?)(?:\.exe|\.cmd)?$/.test(image)
 }
 
 /**

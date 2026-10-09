@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 import relativeDocLinks from './src/remark/relativeDocLinks';
 
 const config: Config = {
-  title: 'NousAI',
+  title: 'Hermes Agent',
   tagline: 'The self-improving AI agent',
   favicon: 'img/favicon.ico',
 
@@ -123,9 +123,9 @@ const config: Config = {
       },
     },
     navbar: {
-      title: 'NousAI',
+      title: 'Hermes Agent',
       logo: {
-        alt: 'NousAI',
+        alt: 'Hermes Agent',
         src: 'img/logo.png',
         srcDark: 'img/logo-dark.png',
       },

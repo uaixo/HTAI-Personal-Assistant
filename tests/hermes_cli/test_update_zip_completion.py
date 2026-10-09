@@ -46,7 +46,7 @@ def zip_update(tmp_path, monkeypatch, isolated_source_completion):
     root.mkdir()
     (root / "pyproject.toml").write_text('[project]\nversion="1.0"\n', encoding="utf-8")
     (root / "payload.txt").write_text("old", encoding="utf-8")
-    for name in ("tools/code.py", "apps/desktop/source.js", "apps/desktop/release/NousAI.exe",
+    for name in ("tools/code.py", "apps/desktop/source.js", "apps/desktop/release/Hermes.exe",
                  "venv/keep", "node_modules/keep", ".env"):
         path = root / name
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -148,7 +148,7 @@ def test_zip_command_migrates_profiles_recovers_snapshot_and_verifies_fleet(
     assert (state.root / "payload.txt").read_text() == "new"
     for name in ("tools/code.py", "apps/desktop/source.js", "new-entry/data"):
         assert (state.root / name).read_text(encoding="utf-8") == "new"
-    for name in ("apps/desktop/release/NousAI.exe", "venv/keep", "node_modules/keep", ".env"):
+    for name in ("apps/desktop/release/Hermes.exe", "venv/keep", "node_modules/keep", ".env"):
         assert (state.root / name).read_text(encoding="utf-8") == "retained"
     assert state.events == ["prepare", *([("marker", True)] if gateway_mode else []),
                             "restart", "resume", "finalize"]
@@ -422,7 +422,7 @@ def test_venv_layout_explicit_and_native(tmp_path, windows, folder, executable):
 def test_installed_app_without_a_checkout_build_is_still_rebuilt(zip_update, monkeypatch, tmp_path, mechanism, rebuilt):
     """#52339: an installed Hermes.app only ``hermes update`` refreshes needs a Desktop build even
     when release/ is gone, or it never gets newer. A self-updating release is not ours to rebuild."""
-    installed = tmp_path / "Applications" / "NousAI.app"
+    installed = tmp_path / "Applications" / "Hermes.app"
     (installed / "Contents" / "Resources").mkdir(parents=True)
     (installed / "Contents" / "Resources" / "install-stamp.json").write_text(
         json.dumps({"updateMechanism": mechanism}), encoding="utf-8")

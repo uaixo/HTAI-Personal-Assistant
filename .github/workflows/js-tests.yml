@@ -7,16 +7,15 @@ on:
 jobs:
   check:
     name: JS & TS checks
-    # One job replaces a 14-leg matrix. The matrix spread about 612s of check
-    # payload over 4-core runners and paid about 371s of repeated setup to do
-    # it: 14 checkouts, 14 node installs, 14 node_modules restores.
+    # One 32-core job replaces a 14-leg matrix. The matrix spread about 612s
+    # of check payload over 4-core runners. It paid about 371s of repeated
+    # setup to do it: 14 checkouts, 14 node installs, 14 node_modules
+    # restores.
     #
-    # One runner installs one time. vitest, tsc and eslint each size their own
-    # worker pool from the core count. This fork is user-owned, so the job runs
-    # on the standard hosted runner (larger runners never start here) and the
-    # timeout leaves room for the payload to run on four cores.
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # One larger runner installs one time. vitest, tsc and eslint each size
+    # their own worker pool from the core count.
+    runs-on: ubuntu-latest-32-core
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
       - name: Set up the locked JS build toolchain
@@ -87,11 +86,5 @@ jobs:
       # ``check:*`` script needs no change here. An empty list is an error and
       # not an empty run, because an empty run reports green after it checks
       # nothing.
-      #
-      # Two checks at a time on the standard 4-core runner: vitest, tsc and
-      # eslint each size their worker pool from the core count, so four checks
-      # at once oversubscribe the box and the suites that spawn real processes
-      # trip their wall-clock timeouts. Two keeps the long pole (the desktop
-      # renderer tests) well inside the job timeout.
       - name: Run all workspace checks
-        run: node .github/scripts/run-workspace-checks.mjs --concurrency 2
+        run: node .github/scripts/run-workspace-checks.mjs

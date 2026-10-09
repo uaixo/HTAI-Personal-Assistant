@@ -2095,7 +2095,7 @@ class TestLegacyHermesUnitDetection:
 
     # Minimal ExecStart that looks like our gateway
     _OUR_UNIT_TEXT = (
-        "[Unit]\nDescription=NousAI Gateway\n[Service]\n"
+        "[Unit]\nDescription=Hermes Gateway\n[Service]\n"
         "ExecStart=/usr/bin/python -m hermes_cli.main gateway run --replace\n"
     )
 
@@ -2144,7 +2144,7 @@ class TestLegacyHermesUnitDetection:
         for i, execstart in enumerate(variants):
             # Test each variant fresh (every variant ships the same unit name)
             (user_dir / "hermes.service").write_text(
-                f"[Unit]\nDescription=Old NousAI\n[Service]\n{execstart}\n",
+                f"[Unit]\nDescription=Old Hermes\n[Service]\n{execstart}\n",
                 encoding="utf-8",
             )
             results = gateway_cli._find_legacy_hermes_units()
@@ -2156,7 +2156,7 @@ class TestRemoveLegacyHermesUnits:
     """Tests for remove_legacy_hermes_units (the migration action)."""
 
     _OUR_UNIT_TEXT = (
-        "[Unit]\nDescription=NousAI Gateway\n[Service]\n"
+        "[Unit]\nDescription=Hermes Gateway\n[Service]\n"
         "ExecStart=/usr/bin/python -m hermes_cli.main gateway run --replace\n"
     )
 

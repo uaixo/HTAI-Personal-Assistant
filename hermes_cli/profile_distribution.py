@@ -200,13 +200,13 @@ def check_hermes_requires(spec: str, current_version: str) -> None:
     m = _VERSION_OP_RE.match(spec)
     op, target = m.groups() if m else (">=", spec.strip())
     if not _VERSION_OPS[op](_parse_semver(current_version), _parse_semver(target)):
-        raise DistributionError(f"This distribution requires NousAI {op}{target}, but you have {current_version}.")
+        raise DistributionError(f"This distribution requires Hermes {op}{target}, but you have {current_version}.")
 
 
 def _env_template_from_manifest(manifest: DistributionManifest) -> str:
     """Generate a ``.env.template`` body from env_requires."""
     lines = [
-        "# Environment variables required by this NousAI distribution.",
+        "# Environment variables required by this Hermes distribution.",
         "# Copy to `.env` and fill in your own values before running.", "",
     ]
     for req in manifest.env_requires:
@@ -262,7 +262,7 @@ def _stage_source(source: str, workdir: Path) -> tuple[Path, str]:
         rmtree_readonly(staged / ".git")
         missing = (
             f"No {MANIFEST_FILENAME} at the root of {src_str!r}. "
-            "This repository is not a NousAI profile distribution."
+            "This repository is not a Hermes profile distribution."
         )
     elif (path_guess := Path(src_str).expanduser()).is_dir():
         staged = path_guess.resolve()
@@ -320,7 +320,7 @@ def plan_install(source: str, workdir: Path, override_name: Optional[str] = None
     manifest = read_manifest(staged)
     if manifest is None:
         raise DistributionError(
-            f"No {MANIFEST_FILENAME} found at the distribution root — this source is not a NousAI distribution."
+            f"No {MANIFEST_FILENAME} found at the distribution root — this source is not a Hermes distribution."
         )
     check_hermes_requires(manifest.hermes_requires, get_version_info().base_version)  # fail fast
     canon = _canon_valid(override_name or manifest.name)

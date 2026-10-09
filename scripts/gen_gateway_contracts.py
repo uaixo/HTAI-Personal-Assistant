@@ -26,7 +26,6 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from hermes_brand import brand_text
 from tui_gateway import contracts
 from tui_gateway.contracts.connectors import (
     ConnectorAccountStatus,
@@ -315,7 +314,7 @@ def render_openrpc() -> str:
 
     doc = {
         "openrpc": "1.3.2",
-        "info": {"title": "NousAI TUI/Desktop gateway", "version": "1",
+        "info": {"title": "Hermes TUI/Desktop gateway", "version": "1",
                  "description": "Generated from tui_gateway/contracts by scripts/gen_gateway_contracts.py."},
         "methods": [
             {"name": m.name, "summary": " ".join(m.doc.split()),
@@ -337,9 +336,7 @@ def render_openrpc() -> str:
             for e in sorted(EVENTS.values(), key=lambda x: x.name)
         ],
     }
-    # Pydantic derives titles from field names (``requires_hermes`` -> "Requires Hermes"); the
-    # committed document is branded like every other display string, so the generator is too.
-    return brand_text(json.dumps(doc, indent=2, sort_keys=False)) + "\n"
+    return json.dumps(doc, indent=2, sort_keys=False) + "\n"
 
 
 def render_all() -> dict[Path, str]:

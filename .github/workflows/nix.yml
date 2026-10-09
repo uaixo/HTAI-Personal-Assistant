@@ -76,8 +76,8 @@ jobs:
     # takes minutes and not seconds when the cache misses. `nix flake check`
     # builds 21 checks, and --max-jobs defaults to the core count. It uses the
     # wider runner with no more configuration.
-    runs-on: ubuntu-latest
-    timeout-minutes: 180
+    runs-on: ubuntu-latest-32-core
+    timeout-minutes: 60
     steps:
       - name: Checkout code
         uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
@@ -169,9 +169,9 @@ jobs:
           import os
 
           expected = os.environ["RELEASE_VERSION"]
-          # Line one is "NousAI v<version> (...)"; later lines (Python, OpenAI SDK) carry other versions.
+          # Line one is "Hermes Agent v<version> (...)"; later lines (Python, OpenAI SDK) carry other versions.
           first = os.environ["ACTUAL_VERSION"].splitlines()[0].split()
-          actual = first[1].removeprefix("v") if first[:1] == ["NousAI"] and len(first) > 1 else ""
+          actual = first[2].removeprefix("v") if first[:2] == ["Hermes", "Agent"] and len(first) > 2 else ""
           if actual != expected:
               raise SystemExit(f"Nix package version mismatch: expected {expected}, got {actual}")
           PY

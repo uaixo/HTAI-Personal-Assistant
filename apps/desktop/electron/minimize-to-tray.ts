@@ -183,13 +183,13 @@ export function createMinimizeToTray(options: Options) {
             height: process.platform === 'darwin' ? 18 : 24
           })
         )
-        tray.setToolTip('NousAI')
+        tray.setToolTip('Hermes')
         tray.setContextMenu(
           Menu.buildFromTemplate([
-            { label: 'Show NousAI', click: restore },
+            { label: 'Show Hermes', click: restore },
             { type: 'separator' },
             // Do not bypass the ordinary active-work confirmation or teardown.
-            { label: 'Quit NousAI', click: () => app.quit() }
+            { label: 'Quit Hermes', click: () => app.quit() }
           ])
         )
 

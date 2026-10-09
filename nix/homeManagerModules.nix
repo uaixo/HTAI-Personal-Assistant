@@ -189,7 +189,7 @@
       # from it, and never the reverse.
       options.programs.hermes-agent = {
         enable = lib.mkEnableOption ''
-          the NousAI command line application.
+          the Hermes Agent command line application.
 
           This adds `hermes` to home.packages, and exports HERMES_HOME with
           home.sessionVariables. An interactive shell then uses the same
@@ -213,18 +213,18 @@
 
         desktop = {
           enable = lib.mkEnableOption ''
-            the NousAI Desktop application (Electron).
+            the Hermes Desktop application (Electron).
 
             This adds `hermes-desktop` to home.packages, with an XDG
-            launcher entry on Linux. The launcher starts the same NousAI
+            launcher entry on Linux. The launcher starts the same Hermes
             runtime that `package` gives, and reads the HERMES_HOME of
             `services.hermes-agent`. Thus the application, the interactive
             shell and the services share one state directory.
 
-            The Electron application carries its own NousAI runtime with
+            The Electron application carries its own Hermes runtime with
             the usual distribution. This module gives it the Nix package
             instead, with HERMES_DESKTOP_HERMES. It installs no second copy
-            of NousAI, and it downloads nothing on the first start
+            of Hermes, and it downloads nothing on the first start
           '';
 
           package = lib.mkOption {
@@ -238,7 +238,7 @@
               `services.hermes-agent.extraPythonPackages` and
               `extraDependencyGroups`, because the desktop application is a
               passthru of the agent package. A package that you set here
-              carries its own NousAI runtime, and this module cannot make
+              carries its own Hermes runtime, and this module cannot make
               it agree with the services.
             '';
           };
@@ -395,7 +395,7 @@
             # ── Linux: systemd user services ───────────────────────────────
             (lib.mkIf (isLinux && cfg.gateway.enable) {
               systemd.user.services.hermes-agent = mkUnit {
-                description = "NousAI Gateway";
+                description = "Hermes Agent Gateway";
                 argv = common.gatewayArgv cfg;
               };
             })

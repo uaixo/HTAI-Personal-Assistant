@@ -37,6 +37,6 @@ suggest:
     - semgrep.dev
 
 post_install: |
-  On first connection NousAI opens a browser to authorize with
+  On first connection Hermes opens a browser to authorize with
   Semgrep (or run `hermes mcp login semgrep`). Approve access,
   then restart the session so tools load.

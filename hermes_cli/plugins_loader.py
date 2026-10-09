@@ -97,7 +97,7 @@ def _reserve_abandoned_loader_slot() -> None:
             return
     raise PluginLoadTimeout(
         f"not loaded: {_MAX_ABANDONED_LOADERS} abandoned plugin loader thread(s) are still running "
-        f"(plugins.load_timeout_seconds); restart NousAI to retry"
+        f"(plugins.load_timeout_seconds); restart Hermes to retry"
     )
 
 
@@ -423,7 +423,7 @@ class PluginLoaderMixin:
             logger.warning(
                 "Plugin %s declares Python dependencies that are not "
                 "installed: %s. For an enabled plugin, run hermes pm repair, "
-                "then restart NousAI. Discovery does not install dependencies.",
+                "then restart Hermes. Discovery does not install dependencies.",
                 key, ", ".join(missing),
             )
         else:

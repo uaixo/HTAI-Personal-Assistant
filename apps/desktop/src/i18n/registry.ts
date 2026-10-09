@@ -14,7 +14,6 @@
  * name, direction) is composed with the bundled table in `./languages`.
  */
 
-import { brandCatalog } from '@hermes/shared/brand'
 import {
   adaptStringOverrides,
   type FlatMessages,
@@ -108,7 +107,7 @@ function makeEntry(id: Locale, registration: AppLocaleRegistration, source: AppL
     endonym: registration.endonym?.trim() || undefined,
     englishName: registration.englishName?.trim() || undefined,
     rtl: registration.rtl,
-    translations: registration.translations ? brandCatalog(toTree(registration.translations, baseCatalog(id))) : undefined
+    translations: registration.translations ? toTree(registration.translations, baseCatalog(id)) : undefined
   }
 }
 

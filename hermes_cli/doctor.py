@@ -178,7 +178,7 @@ def run_doctor(args):
         return _ack_advisory(args.ack)
     print()
     for line in ("┌─────────────────────────────────────────────────────────┐",
-                 "│                 🩺 NousAI Doctor                        │",
+                 "│                 🩺 Hermes Doctor                        │",
                  "└─────────────────────────────────────────────────────────┘"):
         print(color(line, Colors.CYAN))
     total = Finding()

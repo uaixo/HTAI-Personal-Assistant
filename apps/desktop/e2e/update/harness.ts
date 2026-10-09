@@ -150,7 +150,7 @@ export function packagedExe(facts: InstallFacts): string {
   const name = fs.readdirSync(dir).find(entry => /^hermes$/i.test(entry))
 
   if (!name) {
-    throw new Error(`no packaged NousAI executable in ${dir}: ${fs.readdirSync(dir).join(', ')}`)
+    throw new Error(`no packaged Hermes executable in ${dir}: ${fs.readdirSync(dir).join(', ')}`)
   }
 
   return path.join(dir, name)
@@ -378,11 +378,11 @@ export async function waitFor<T>(
 
 /** Copy of the first-run chooser / bootstrap installer overlay (the screens a healthy install must never show). */
 export const FIRST_RUN_SCREENS = [
-  'Set up NousAI Desktop',
-  'NousAI needs a one-time install',
-  'Setting up NousAI',
-  'Install NousAI locally',
-  'Use NousAI on this computer'
+  'Set up Hermes Desktop',
+  'Hermes needs a one-time install',
+  'Setting up Hermes Agent',
+  'Install Hermes locally',
+  'Use Hermes on this computer'
 ]
 
 /**

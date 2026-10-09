@@ -67,7 +67,7 @@ class TestEnsureHermesHome:
     # The pre-#95681 DEFAULT_SOUL_MD text, hardcoded (not read from the
     # module) so this fixture keeps testing the OLD text regardless of any
     # future change to _LEGACY_TEMPLATE_SOULS's length or ordering.
-    _PRE_REWRITE_DEFAULT_SOUL = (  # rebrand: keep
+    _PRE_REWRITE_DEFAULT_SOUL = (
         "You are Hermes Agent, an intelligent AI assistant created by Nous "
         "Research. You are helpful, knowledgeable, and direct. You assist "
         "users with a wide range of tasks including answering questions, "

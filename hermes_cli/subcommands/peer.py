@@ -423,8 +423,8 @@ def cmd_peer(args) -> int:
 def build_peer_parser(subparsers) -> None:
     """Attach the ``peer`` subcommand to ``subparsers``."""
     parser = subparsers.add_parser(
-        "peer", help="Bot-to-bot DMs across machines (peer NousAI gateways)",
-        description="Register other NousAI gateways as peers and message their agents. "
+        "peer", help="Bot-to-bot DMs across machines (peer Hermes gateways)",
+        description="Register other Hermes gateways as peers and message their agents. "
             "'hermes peer dm <peer>[/<agent>] \"...\"' delivers into the remote "
             "agent's canonical Bot Chat over the peer's API server and prints "
             "the reply — the cross-machine twin of 'hermes -p <bot> chat'. "
