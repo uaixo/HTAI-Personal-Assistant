@@ -4,6 +4,7 @@ import { test } from 'vitest'
 
 import { hasWindowsPathPrefix, isExternalVenvHolder, isHermesOwnedVenvDaemon } from './venv-holder-select'
 
+// rebrand: keep-start -- the venv path is a filesystem fixture; one test lowercases it whole
 const SCRIPTS = 'C:\\Hermes\\venv\\Scripts'
 
 test('matches the hindsight daemon shim (exe under venv Scripts + hindsight cmdline)', () => {
@@ -111,3 +112,4 @@ test('sibling-dir and boundary safety for the external selector', () => {
   assert.equal(isExternalVenvHolder(null, 'hermes gateway run', SCRIPTS), false)
   assert.equal(isExternalVenvHolder('C:\\Hermes\\venv\\Scripts\\hermes.exe', null, SCRIPTS), false)
 })
+// rebrand: keep-end

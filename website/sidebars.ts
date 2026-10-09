@@ -24,7 +24,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Using Hermes',
+      label: 'Using NousAI',
       collapsed: true,
       items: [
         'user-guide/cli',
@@ -790,6 +790,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'developer-guide/contributing',
         'developer-guide/worktree-ui-dev',
+        'developer-guide/branding',
         {
           type: 'category',
           label: 'Architecture',

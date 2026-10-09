@@ -7,7 +7,7 @@
 # DEFAULT_AGENT_IDENTITY only serves sessions with no SOUL.md at all (e.g. skip_context_files), which is not
 # the common case. See #95681.
 DEFAULT_SOUL_MD = (
-    "You are Hermes Agent, built by Nous Research. Be direct: match the length of your reply to the weight of "
+    "You are NousAI, built by Nous Research. Be direct: match the length of your reply to the weight of "
     "the ask — a one-line question gets a one-line answer, and finished work gets a short report of what "
     "changed, what's verified, and what's left, never a replay of the process. No filler (\"Great question,\" "
     "\"I'd be happy to\"), no restating the request back, no re-summarizing what you already said, no narrating "
@@ -16,10 +16,22 @@ DEFAULT_SOUL_MD = (
     "the stakes demand it, not by default."
 )
 
+# Everything below matches text OLDER installs wrote to disk, so it keeps the upstream spelling.
+# rebrand: keep-start
 _SCAFFOLD_HEAD = (
     "# Hermes Agent Persona\n\n<!--\nThis file defines the agent's personality and tone.\n"
     "The agent will embody whatever you write here.\nEdit this to customize how Hermes communicates with you.\n\n"
 )
+_UPSTREAM_DEFAULT_SOUL_MD = (
+    "You are Hermes Agent, built by Nous Research. Be direct: match the length of your reply to the weight of "
+    "the ask \u2014 a one-line question gets a one-line answer, and finished work gets a short report of what "
+    "changed, what's verified, and what's left, never a replay of the process. No filler (\"Great question,\" "
+    "\"I'd be happy to\"), no restating the request back, no re-summarizing what you already said, no narrating "
+    "tool calls the user can see. Plain claims over adjectives; when unsure, say so plainly. Agree because it's "
+    "right, not because the user said it. Depth is earned \u2014 give it when the user asks for detail, teaches, or "
+    "the stakes demand it, not by default."
+)
+
 _SCAFFOLD_TAIL = (
     "This file is loaded fresh each message -- no restart needed.\n"
     "Delete the contents (or this file) to use the default personality.\n-->"
@@ -39,6 +51,10 @@ _LEGACY_TEMPLATE_SOULS = (
     ) + _SCAFFOLD_TAIL,
     # Bare scaffold without the "Examples" block, shipped briefly.
     _SCAFFOLD_HEAD + _SCAFFOLD_TAIL,
+    # Upstream's auto-seeded default (what an install made before the rebrand carries) and its
+    # ASCII-dashed Windows variant: an untouched one upgrades to DEFAULT_SOUL_MD like any scaffold.
+    _UPSTREAM_DEFAULT_SOUL_MD,
+    _UPSTREAM_DEFAULT_SOUL_MD.replace("\u2014", "--"),
     # The previous generation of DEFAULT_SOUL_MD (same auto-seed mechanism, older string).
     (
         "You are Hermes Agent, an intelligent AI assistant created by Nous Research. You are helpful, "
@@ -52,6 +68,7 @@ _LEGACY_TEMPLATE_SOULS = (
     # tests/scripts/install/test_install_ps1_ascii_only.py); upgrading converges Windows installs on the em-dash text.
     DEFAULT_SOUL_MD.replace("\u2014", "--"),
 )
+# rebrand: keep-end
 
 
 def _normalize_soul(text: str) -> str:

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from hermes_constants import get_hermes_home
+from hermes_brand import AGENT_NAME, SYMBOL
 
 logger = logging.getLogger(__name__)
 
@@ -41,11 +42,14 @@ class SkinConfig:
                 if isinstance(pair, (list, tuple)) and len(pair) == 2]
 
 
-def _branding(who: str, symbol: str, goodbye: str, prompt: str = "", help_header: str = "") -> dict[str, str]:
-    """Branding block for a "<who> Agent" persona keyed by its glyph."""
+def _branding(who: str, symbol: str, goodbye: str, prompt: str = "", help_header: str = "",
+              agent_name: str = "") -> dict[str, str]:
+    """Branding block for a "<who> Agent" persona keyed by its glyph. ``agent_name`` replaces the
+    "<who> Agent" form: the product's own skin is named after the product."""
+    name = agent_name or f"{who} Agent"
     return {
-        "agent_name": f"{who} Agent",
-        "welcome": f"Welcome to {who} Agent! Type your message or /help for commands.",
+        "agent_name": name,
+        "welcome": f"Welcome to {name}! Type your message or /help for commands.",
         "goodbye": goodbye, "response_label": f" {symbol} {who} ", "prompt_symbol": prompt or symbol,
         "help_header": help_header or f"({symbol}) Available Commands"}
 
@@ -58,11 +62,12 @@ def _wings(*glyphs) -> list[list[str]]:
 
 # Branding shared by every Hermes-named built-in (mono/daylight override help_header).
 _HERMES_BRANDING: dict[str, str] = _branding(
-    "Hermes", "☤", "Goodbye! ☤", prompt="❯", help_header="(^_^)? Available Commands")
+    AGENT_NAME, SYMBOL, f"Goodbye! {SYMBOL}", prompt="❯", help_header="(^_^)? Available Commands",
+    agent_name=AGENT_NAME)
 
 _BUILTIN_SKINS: dict[str, dict[str, Any]] = {
     "default": {
-        "name": "default", "description": "Classic Hermes — gold and kawaii",
+        "name": "default", "description": "Classic NousAI — gold and kawaii",
         # Dark-authored; values match the TUI's DARK_THEME so both render the same gold.
         "colors": {
             "banner_border": "#CD7F32", "banner_title": "#FFD700", "banner_accent": "#FFBF00",
@@ -491,7 +496,7 @@ def get_active_help_header(fallback: str = "(^_^)? Available Commands") -> str:
     return _active_branding("help_header", fallback)
 
 
-def get_active_goodbye(fallback: str = "Goodbye! ☤") -> str:
+def get_active_goodbye(fallback: str = "Goodbye! ✦") -> str:
     return _active_branding("goodbye", fallback)
 
 

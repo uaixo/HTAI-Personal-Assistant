@@ -37,8 +37,8 @@ ACCEPT = [
     "hermes -p gateway gateway run",
     "python -m hermes_cli.main --profile gateway gateway run",
     # quoted Windows paths with spaces (shlex-aware tokenization)
-    r'"C:\Program Files\Hermes\hermes-gateway.exe"',
-    r'"C:\Program Files\Hermes\gateway\run.py" run',
+    r'"C:\Program Files\NousAI\hermes-gateway.exe"',
+    r'"C:\Program Files\NousAI\gateway\run.py" run',
     r'"C:\Program Files\Py\pythonw.exe" -m hermes_cli.main gateway run',
 ]
 
@@ -155,8 +155,8 @@ def test_spawn_intent_ignores_inline_source_without_a_gateway_argv():
 # ``gateway run --replace`` enters the replace/lock-handoff path instead of
 # colliding with the desktop runner's still-held scoped locks.
 ATOMIC_DESKTOP = (
-    "/Applications/Atomic Hermes.app/Contents/Resources/python-server/python "
-    "/Applications/Atomic Hermes.app/Contents/Resources/python-server/desktop-gateway.py"
+    "/Applications/Atomic NousAI.app/Contents/Resources/python-server/python "
+    "/Applications/Atomic NousAI.app/Contents/Resources/python-server/desktop-gateway.py"
 )
 
 

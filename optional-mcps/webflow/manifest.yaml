@@ -27,6 +27,6 @@ suggest:
     - webflow.com
 
 post_install: |
-  On first connection Hermes opens a browser to authorize with
+  On first connection NousAI opens a browser to authorize with
   Webflow (or run `hermes mcp login webflow`). Approve access,
   then restart the session so tools load.

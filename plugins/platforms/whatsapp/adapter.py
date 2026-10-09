@@ -669,7 +669,7 @@ class WhatsAppAdapter(WhatsAppBehaviorMixin, BasePlatformAdapter):
                         self._set_fatal_error(
                             "whatsapp_bridge_unresponsive",
                             f"Port {self._bridge_port} is held by a process that did not answer /health in time, so "
-                            f"Hermes cannot tell whose WhatsApp bridge it is; nothing on port {self._bridge_port} was "
+                            f"NousAI cannot tell whose WhatsApp bridge it is; nothing on port {self._bridge_port} was "
                             "stopped. Stop that process, or give this profile its own port via "
                             "platforms.whatsapp.extra.bridge_port.",
                             retryable=True,
@@ -1137,7 +1137,7 @@ async def _standalone_send(pconfig, chat_id, message, *, thread_id=None, media_f
                 if not (health.get("capabilities") or {}).get("outboundMentions"):
                     return {"error": (
                         "WhatsApp bridge does not support native mentions; "
-                        "restart it from the same Hermes version.")}
+                        "restart it from the same NousAI version.")}
 
             async def _post(path, payload, total, error_label=None):
                 """``(messageId, None)`` on 200, else ``(None, error_dict)`` (body read only when labelled)."""

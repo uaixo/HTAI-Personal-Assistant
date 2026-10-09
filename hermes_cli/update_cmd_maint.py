@@ -49,7 +49,7 @@ def _sqlite_partial_completion_lines(sqlite_version: str) -> list[str]:
     from hermes_cli.update_cmd import _m
     return [
         f"⚠ Update partially complete — your Python's SQLite ({sqlite_version}) has a known "
-        "corruption bug. Hermes works, but sessions could be damaged.",
+        "corruption bug. NousAI works, but sessions could be damaged.",
         f"  Fix: run the installer again ({_REINSTALL_ONE_LINER[bool(_m()._is_windows())]}) "
         "which installs a safe Python, then run `hermes doctor` to confirm.",
     ]
@@ -445,7 +445,7 @@ def _restore_state_db_from_snapshot(state_path: Path, snap_state: Path) -> bool:
     except LiveConnectionError as exc:
         print(
             f"  ✗ Auto-restore refused: {exc} Close the in-process database "
-            "handles (or restart Hermes) and retry."
+            "handles (or restart NousAI) and retry."
         )
         return False
     restored = verify_sqlite_integrity(state_path, check_header=True, run_pragma=True)
@@ -591,7 +591,7 @@ def _ensure_fhs_path_guard() -> None:
         return  # already on PATH, nothing to do
 
     path_line = 'export PATH="/usr/local/bin:$PATH"'
-    path_comment = "# Hermes Agent — ensure /usr/local/bin is on PATH (RHEL non-login shells)"
+    path_comment = "# NousAI — ensure /usr/local/bin is on PATH (RHEL non-login shells)"
     wrote_any = False
     for candidate in (".bashrc", ".bash_profile"):
         cfg = Path(home) / candidate
@@ -1012,7 +1012,7 @@ def _run_post_update_maintenance(
     if sys.platform == "darwin" and had_desktop_app_before_update:
         print()
         print(
-            "  ℹ macOS: if Hermes re-prompts for permissions you already "
+            "  ℹ macOS: if NousAI re-prompts for permissions you already "
             "granted (toggle shows ON), the stored grant is stale — run "
             "`tccutil reset ScreenCapture com.nousresearch.hermes` (repeat "
             "per affected service), toggle it ON in System Settings, then "

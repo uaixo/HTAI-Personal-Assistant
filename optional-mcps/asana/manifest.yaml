@@ -57,6 +57,6 @@ post_install: |
 
   Then run `hermes mcp login asana` (or click Authorize in the dashboard /
   Desktop: the callback still arrives at http://localhost:27890/callback, so
-  the browser must run on the same machine as Hermes), approve access, and
-  restart (or `/reload-mcp`) the Hermes session or gateway that should
+  the browser must run on the same machine as NousAI), approve access, and
+  restart (or `/reload-mcp`) the NousAI session or gateway that should
   expose the Asana tools.

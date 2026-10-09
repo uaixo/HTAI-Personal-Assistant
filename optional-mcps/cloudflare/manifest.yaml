@@ -101,9 +101,9 @@ tools:
     - "*_user_load_balancers*"
 
 post_install: |
-  On first connection, Hermes opens a browser to authorize with Cloudflare.
+  On first connection, NousAI opens a browser to authorize with Cloudflare.
   You pick the account and the permissions to grant — scope the token to
-  what you want the agent to touch. After auth, restart your Hermes session
+  what you want the agent to touch. After auth, restart your NousAI session
   so the Cloudflare tools are loaded.
 
   This entry exposes each Cloudflare API endpoint as an individual tool.
@@ -111,7 +111,7 @@ post_install: |
   org-fleet, and read-only-analytics product families are disabled —
   ~1,400 tools), leaving ~1,900 tools for the products people actually
   drive from an agent: DNS, Workers, R2, KV, D1, Queues, Pages, WAF,
-  rulesets, tunnels, Access, Stream, Images, AI, Vectorize. Hermes's
+  rulesets, tunnels, Access, Stream, Images, AI, Vectorize. NousAI's
   tool_search defers them all, so your context is not flooded — the agent
   discovers the right endpoint on demand with full schemas.
 
@@ -131,7 +131,7 @@ post_install: |
 
   Prefer the provider-side Code Mode surface instead (2 search/execute
   meta-tools, ~1k-token schema, sandboxed JS composition)? Drop the
-  `?codemode=false` from the url. Not recommended together with Hermes
+  `?codemode=false` from the url. Not recommended together with NousAI
   tool_search — you'd be stacking two tool-discovery layers.
 
   Cloudflare also runs product-specific MCP servers (same OAuth flow, add

@@ -52,12 +52,12 @@ suggest:
     - betterstack.com
 
 post_install: |
-  On first connection Hermes opens a browser to authorize with
+  On first connection NousAI opens a browser to authorize with
   Better Stack (or run `hermes mcp login betterstack`). Approve access,
   then restart the session so tools load.
 
   Heads-up: this server exposes a LARGE tool surface (~106 tools as of
-  Aug 2026). Hermes applies a curated exclude list automatically at install
+  Aug 2026). NousAI applies a curated exclude list automatically at install
   (docs search, instruction pseudo-tools, the raw-SQL query hatch, cloud
   credential minting, and team-membership tools); everything else stays
   enabled. Review or change the selection any time with:

@@ -728,7 +728,7 @@ class TestImport:
         assert cmd_import(args) is None
         out = capsys.readouterr().out
         assert "Preserved 1 runtime state file(s)" in out
-        assert "Done. Your Hermes configuration has been restored." in out
+        assert "Done. Your NousAI configuration has been restored." in out
 
 
 

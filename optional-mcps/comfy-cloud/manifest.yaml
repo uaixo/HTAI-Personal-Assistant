@@ -67,8 +67,8 @@ tools:
     - get_workflow_canvas_url
 
 post_install: |
-  On first connection, Hermes will open a browser to authenticate with your
-  Comfy account. After auth, restart your Hermes session so the Comfy Cloud
+  On first connection, NousAI will open a browser to authenticate with your
+  Comfy account. After auth, restart your NousAI session so the Comfy Cloud
   tools are loaded.
 
   Discovery tools (search_templates / search_models / search_nodes) work with
