@@ -362,7 +362,7 @@ describe('toChatMessages', () => {
     // How a turn sent to a natively-vision-capable model comes back out of the
     // session store: a backtick-quoted ref (the path has spaces) and the
     // `[screenshot]` stand-in left by flattening the parts list.
-    const ref = '@image:`/Users/me/Library/Application Support/Hermes/composer-images/a.png`'
+    const ref = '@image:`/Users/me/Library/Application Support/NousAI/composer-images/a.png`'
 
     const [message] = toChatMessages([
       {
@@ -564,7 +564,7 @@ describe('toChatMessages', () => {
 
   // Hermes closes a failed turn with an assistant-role row (agent/turn_failure_copy.py);
   // painted as the model's reply it read as the assistant refusing the request.
-  it('renders the failed-turn boundary as a Hermes notice, not a model reply', () => {
+  it('renders the failed-turn boundary as a NousAI notice, not a model reply', () => {
     const messages = toChatMessages([
       { role: 'user', content: 'do the thing', timestamp: 1 },
       { role: 'assistant', content: 'Your request was not processed.', display_kind: 'failed_turn', timestamp: 2 }

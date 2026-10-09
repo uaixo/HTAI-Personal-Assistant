@@ -30,7 +30,7 @@ let
   # all of the definitions. Without it, only the last definition applies.
   deepConfigType = types.mkOptionType {
     name = "hermes-config-attrs";
-    description = "Hermes YAML config (attrset), merged deeply via lib.recursiveUpdate.";
+    description = "NousAI YAML config (attrset), merged deeply via lib.recursiveUpdate.";
     check = builtins.isAttrs;
     merge = _loc: defs: lib.foldl' lib.recursiveUpdate { } (map (d: d.value) defs);
   };
@@ -234,7 +234,7 @@ let
       defaultWorkingDirectoryText,
     }:
     {
-      enable = lib.mkEnableOption "Hermes Agent";
+      enable = lib.mkEnableOption "NousAI";
 
       # ── Package ────────────────────────────────────────────────────────
       package = mkOption {
@@ -271,7 +271,7 @@ let
         type = deepConfigType;
         default = { };
         description = ''
-          The Hermes configuration, as an attribute set. The module joins the
+          The NousAI configuration, as an attribute set. The module joins the
           definitions from all modules and writes the result to config.yaml.
 
           The merge into the config.yaml on disk is also a deep merge. These
@@ -299,7 +299,7 @@ let
         description = ''
           The paths to environment files that contain secrets, for example
           API keys and tokens. Activation adds the contents of these files to
-          $HERMES_HOME/.env. Hermes reads that file at each start, with
+          $HERMES_HOME/.env. NousAI reads that file at each start, with
           load_hermes_dotenv().
 
           Each activation writes .env again from the start. Thus a secret
@@ -326,7 +326,7 @@ let
         description = ''
           The path to a file that gives the first contents of auth.json, the
           OAuth credentials. The module copies the file only when auth.json
-          does not exist. Thus a token that Hermes refreshes at runtime stays
+          does not exist. Thus a token that NousAI refreshes at runtime stays
           after an activation.
         '';
       };
@@ -348,7 +348,7 @@ let
 
           Use this option for the project context that the agent reads from
           its working directory, for example AGENTS.md, notes and checklists.
-          Hermes reads SOUL.md and memories/ from HERMES_HOME, so put those
+          NousAI reads SOUL.md and memories/ from HERMES_HOME, so put those
           files in `hermesHomeFiles`.
 
           If you set this option, you must also set `workingDirectory`. The
@@ -371,8 +371,8 @@ let
           relative to that directory, and the module makes the necessary
           subdirectories. Each value is a string or a path.
 
-          Hermes reads SOUL.md and the memory files from HERMES_HOME and not
-          from the working directory. Declare those files here, or Hermes
+          NousAI reads SOUL.md and the memory files from HERMES_HOME and not
+          from the working directory. Declare those files here, or NousAI
           does not load them.
         '';
         example = literalExpression ''
@@ -422,7 +422,7 @@ let
         description = ''
           Directory-based plugin packages to symlink into the hermes plugins
           directory. Each package must contain a plugin.yaml and __init__.py
-          at its root. Hermes discovers these automatically on startup.
+          at its root. NousAI discovers these automatically on startup.
         '';
         example = literalExpression ''
           [
@@ -523,7 +523,7 @@ let
 
             - "none"      — no backend
             - "serve"     — the backend without a user interface. It gives
-                            the /api/ws and /api/pty sockets that Hermes
+                            the /api/ws and /api/pty sockets that NousAI
                             Desktop connects to.
             - "dashboard" — all that "serve" gives, and the browser admin
                             panel on the same port
@@ -636,7 +636,7 @@ let
 
             The backend reads the file at each start and gives the value to
             HERMES_DASHBOARD_SESSION_TOKEN. That token authorizes the /api
-            routes and the /api/ws socket. Hermes Desktop presents the same
+            routes and the /api/ws socket. NousAI Desktop presents the same
             value, so the application reaches this backend and starts no
             second one.
 
@@ -664,7 +664,7 @@ let
   installPackageRemovedMessage =
     value:
     ''
-      services.hermes-agent.installPackage was removed. Hermes now
+      services.hermes-agent.installPackage was removed. NousAI now
       separates the installation from the services, which is the
       Home Manager convention:
 
@@ -1054,9 +1054,9 @@ let
   backendDescription =
     cfg:
     if cfg.backend.mode == "dashboard" then
-      "Hermes Agent web dashboard and desktop backend"
+      "NousAI web dashboard and desktop backend"
     else
-      "Hermes Agent backend for Hermes Desktop";
+      "NousAI backend for NousAI Desktop";
 
   # The environment that each Hermes process needs, from either module.
   #
@@ -1116,9 +1116,9 @@ let
 
             ${optionPath}.workingDirectory = "/path/you/want";
 
-          To give Hermes an identity and a memory, use
+          To give NousAI an identity and a memory, use
           ${optionPath}.hermesHomeFiles instead. Those files go to
-          HERMES_HOME. Hermes reads SOUL.md and memories/ only from there.
+          HERMES_HOME. NousAI reads SOUL.md and memories/ only from there.
         '';
       }
     ];

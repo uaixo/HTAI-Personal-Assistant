@@ -133,7 +133,7 @@ while ((Get-Date) -lt $deadline -and -not $clicked) {
     if ($win) {
         $hit = Find-InvokableButton -Root $win -Patterns @(
             '^Update now',            # en: the packaged overlay's primary action
-            'Update Hermes',          # en settings: About surface
+            'Update NousAI',          # en settings: About surface
             '^Update$'
         )
         if ($hit) {

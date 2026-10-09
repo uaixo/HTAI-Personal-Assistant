@@ -16,7 +16,7 @@ import { BootFailureOverlay } from './boot-failure-overlay'
 
 function failBoot() {
   $desktopBoot.set({
-    error: 'Could not connect to Hermes gateway',
+    error: 'Could not connect to NousAI gateway',
     fakeMode: false,
     message: 'boot failed',
     phase: 'renderer.error',
@@ -347,7 +347,7 @@ describe('BootFailureOverlay', () => {
     $desktopBoot.set({
       ...$desktopBoot.get(),
       error:
-        'This app bundles its own Hermes runtime, but the runtime files are missing or damaged. Reinstall Hermes Desktop to restore it.'
+        'This app bundles its own NousAI runtime, but the runtime files are missing or damaged. Reinstall NousAI Desktop to restore it.'
     })
 
     try {

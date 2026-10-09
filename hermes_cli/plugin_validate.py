@@ -646,7 +646,7 @@ def _validate_portable_plugin(report: ValidationReport, plugin_dir: Path) -> Val
     for server_name, config in package.mcp_servers.items():
         if config.get("trust") == "untrusted":
             report.add(f"server trust: {server_name}", True,
-                       "untrusted (Hermes asks before every write-capable tool call)")
+                       "untrusted (NousAI asks before every write-capable tool call)")
     for server_name, server_decl in package.server_declarations.items():
         result = availability(server_decl.declaration)
         detail = result.state

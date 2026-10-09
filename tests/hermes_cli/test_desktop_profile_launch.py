@@ -51,9 +51,9 @@ def _named_profiles(argv: list[str]) -> set[str]:
 def _packaged_exe(root: Path) -> Path:
     desktop_dir = root / "apps" / "desktop"
     if sys.platform == "darwin":
-        exe = desktop_dir / "release" / "mac-arm64" / "Hermes.app" / "Contents" / "MacOS" / "Hermes"
+        exe = desktop_dir / "release" / "mac-arm64" / "NousAI.app" / "Contents" / "MacOS" / "NousAI"
     elif sys.platform == "win32":
-        exe = desktop_dir / "release" / "win-unpacked" / "Hermes.exe"
+        exe = desktop_dir / "release" / "win-unpacked" / "NousAI.exe"
     else:
         exe = desktop_dir / "release" / "linux-unpacked" / "hermes"
         exe.parent.mkdir(parents=True, exist_ok=True)

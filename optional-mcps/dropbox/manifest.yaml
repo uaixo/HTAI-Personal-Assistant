@@ -36,6 +36,6 @@ suggest:
     - dropbox.com
 
 post_install: |
-  On first connection Hermes opens a browser to authorize with
+  On first connection NousAI opens a browser to authorize with
   Dropbox (or run `hermes mcp login dropbox`). Approve access,
   then restart the session so tools load.

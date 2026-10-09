@@ -252,7 +252,7 @@ jobs:
           OPENAI_API_KEY: ''
           NOUS_API_KEY: ''
 
-      - name: No leftover Python / Hermes processes
+      - name: No leftover Python / NousAI processes
         # Backstop for the per-test ownership checks: a file killed by its 900 s timeout,
         # or a detached grandchild some test's cleanup missed, leaves an interpreter behind
         # (Windows never re-parents, so nothing reaps it). The runner itself runs no

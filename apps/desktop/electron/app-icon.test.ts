@@ -58,7 +58,7 @@ test('decodingFileProbe rejects a directory', () => {
 // icon.ico to resources/), so resolving the ladder must never probe inside the archive, even though
 // the packed copies exist too.
 test('resolving a packaged icon never probes a path inside app.asar', () => {
-  const resources = path.join('/opt', 'Hermes', 'resources')
+  const resources = path.join('/opt', 'NousAI', 'resources')
   const appRoot = path.join(resources, 'app.asar')
   const unpackedPathFor = (p: string) => p.replace(/app\.asar(?=$|[\\/])/, 'app.asar.unpacked')
   const unpackedIcon = path.join(unpackedPathFor(appRoot), 'dist', 'apple-touch-icon.png')
@@ -98,14 +98,14 @@ test('resolving a packaged icon never probes a path inside app.asar', () => {
 test('appIconCandidates keeps the documented precedence ladder', () => {
   const mac = appIconCandidates({
     isWindows: false,
-    appRoot: '/Applications/Hermes.app/Contents/Resources',
+    appRoot: '/Applications/NousAI.app/Contents/Resources',
     unpackedPathFor: p => `${p}.unpacked`
   })
 
   assert.deepEqual(mac, [
-    path.join('/Applications/Hermes.app/Contents/Resources.unpacked', 'dist', 'apple-touch-icon.png'),
-    path.join('/Applications/Hermes.app/Contents/Resources', 'public', 'apple-touch-icon.png'),
-    path.join('/Applications/Hermes.app/Contents/Resources', 'dist', 'apple-touch-icon.png')
+    path.join('/Applications/NousAI.app/Contents/Resources.unpacked', 'dist', 'apple-touch-icon.png'),
+    path.join('/Applications/NousAI.app/Contents/Resources', 'public', 'apple-touch-icon.png'),
+    path.join('/Applications/NousAI.app/Contents/Resources', 'dist', 'apple-touch-icon.png')
   ])
 
   // Windows prepends the two full-bleed .ico rungs ahead of the PNG ladder.

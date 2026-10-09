@@ -306,7 +306,7 @@ TOOL_CATEGORIES = {
     "x_search": {
         "name": "X (Twitter) Search", "setup_title": "Select xAI Credential Source",
         "setup_note": (
-            "Hermes routes X searches through xAI's built-in x_search Responses tool for read-only public X "
+            "NousAI routes X searches through xAI's built-in x_search Responses tool for read-only public X "
             "discovery. Use the xurl skill for authenticated X API reads and account actions. Both credential "
             "sources hit the same https://api.x.ai/v1/responses endpoint — pick whichever you already have. "
             "SuperGrok OAuth is preferred when both are set (uses your subscription quota instead of API spend)."
@@ -330,7 +330,7 @@ TOOL_CATEGORIES = {
         "providers": [
             _row("Local Browser", "★ recommended · free", "Headless Chromium, no API key needed", browser_provider="local",
                  browser_engine="auto", post_setup="agent_browser"),
-            _row("Lightpanda", "free · local · no Chromium", "Zig headless browser spawned by Hermes, text-only (no screenshots)",
+            _row("Lightpanda", "free · local · no Chromium", "Zig headless browser spawned by NousAI, text-only (no screenshots)",
                  browser_provider="local", browser_engine="lightpanda", post_setup="lightpanda"),
             # Cloud hook installs only the agent-browser CLI: Browser Use hosts its own Chromium, so the
             # local-Chromium install and readiness gate must not apply (with "agent_browser" this row read
@@ -965,7 +965,7 @@ def _platform_menu_label(config: dict, pkey: str) -> str:
 def _print_tools_summary(config: dict, enabled_platforms: list[str]) -> None:
     """``hermes tools --summary``: enabled toolsets per platform, non-interactive."""
     total = len(_get_effective_configurable_toolsets())
-    print(color("☤ Tool Summary", Colors.CYAN, Colors.BOLD))
+    print(color("✦ Tool Summary", Colors.CYAN, Colors.BOLD))
     print()
     for pkey, enabled in _platform_toolset_summary(config, enabled_platforms).items():
         print(color(f"  {PLATFORMS[pkey]['label']}", Colors.BOLD) + color(f"  ({len(enabled)}/{total})", Colors.DIM))
@@ -1072,7 +1072,7 @@ def tools_command(args=None, first_install: bool = False, config: dict | None = 
     if getattr(args, "summary", False):
         _print_tools_summary(config, enabled_platforms)
         return
-    print(color("☤ Hermes Tool Configuration", Colors.CYAN, Colors.BOLD))
+    print(color("✦ NousAI Tool Configuration", Colors.CYAN, Colors.BOLD))
     print(color("  Enable or disable tools per platform.", Colors.DIM))
     print(color("  Tools that need API keys will be configured when enabled.", Colors.DIM))
     print(color("  Guide: https://hermes-agent.nousresearch.com/docs/user-guide/features/tools", Colors.DIM))

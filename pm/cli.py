@@ -787,7 +787,7 @@ def cmd_repair(args) -> int:
 
     if not recover_if_needed(repo_root(), explicit=True):
         return 1
-    print("Restart Hermes to use the repaired dependency environment.")
+    print("Restart NousAI to use the repaired dependency environment.")
     return 0
 
 

@@ -106,7 +106,7 @@ jobs:
             echo '__EOF__'
           } >> "$GITHUB_OUTPUT"
 
-      - name: Prepare Hermes from the PR's own checkout
+      - name: Prepare NousAI from the PR's own checkout
         if: steps.changed.outputs.files != ''
         uses: ./.github/actions/setup-pm
         with:

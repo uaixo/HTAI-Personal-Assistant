@@ -188,7 +188,7 @@ phase_install() {
   local found
   found="$(find "$WORK_ROOT/install-old" -maxdepth 2 -name '*.app' -type d | head -1)"
   [ -n "$found" ] || fail "no .app inside the OLD release zip"
-  local old_app="$WORK_ROOT/apps/Hermes.app"
+  local old_app="$WORK_ROOT/apps/NousAI.app"
   mv "$found" "$old_app"
 
   local old_app_bin

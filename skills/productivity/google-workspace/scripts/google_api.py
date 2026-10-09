@@ -1145,7 +1145,7 @@ def _docs_insert_text(doc_id: str, text: str, index: int, tab_id: str | None = N
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Google Workspace API for Hermes Agent")
+    parser = argparse.ArgumentParser(description="Google Workspace API for NousAI")
     sub = parser.add_subparsers(dest="service", required=True)
 
     # --- Gmail ---

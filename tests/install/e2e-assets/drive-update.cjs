@@ -33,7 +33,7 @@ const nativeHandoff = process.argv[5] === '--native-handoff'
 const targetSha = nativeHandoff ? undefined : process.argv[5]
 
 if (!exePath || !proofDir || !oldSha || !(nativeHandoff || targetSha) || !process.env.HERMES_E2E_MOCK_URL) {
-  console.error('usage: node drive-update.cjs <Hermes.exe> <proof-dir> <old-sha> (<target-sha> | --native-handoff); HERMES_E2E_MOCK_URL required')
+  console.error('usage: node drive-update.cjs <NousAI.exe> <proof-dir> <old-sha> (<target-sha> | --native-handoff); HERMES_E2E_MOCK_URL required')
   process.exit(1)
 }
 
