@@ -1,0 +1,63 @@
+// Product brand for user-facing text — the TypeScript mirror of `hermes_brand.py`
+// (keep the two in step). `AGENT_NAME` is what a person reads; internal
+// identifiers (`hermes` command, `HERMES_*` variables, `hermes://` links, HTTP
+// headers) keep their upstream names so merges from upstream stay cheap.
+//
+// The bundled catalogs are branded as they load (`brandCatalog`); the backend
+// brands the YAML packs it serves; `scripts/rebrand.py` brands literals at rest.
+
+export const AGENT_NAME = 'NousAI'
+export const VENDOR = 'Nous Research'
+/** Glyph that marks the agent in response labels and short notices. */
+export const SYMBOL = '✦'
+
+// Same rule as `hermes_brand._LEGACY_BRAND`: word-bounded on both sides so
+// identifiers (`X-Hermes-Token`, `Hermes-Setup.exe`, `NousResearch.Hermes`,
+// `OpenHermes`) and the Hermes model family (`Hermes 4`) are left alone, while
+// `Hermes.app` / `Hermes.exe` follow the product name.
+const LEGACY_BRAND = /(?<![A-Za-z0-9_.-])Hermes(?: Agent)?(?![A-Za-z0-9_-])(?! \d)/g
+const LEGACY_SYMBOL = /☤/g
+
+/** `text` with every upstream product name and glyph replaced by the brand. Idempotent. */
+export function brandText(text: string): string {
+  return text.replace(LEGACY_BRAND, AGENT_NAME).replace(LEGACY_SYMBOL, SYMBOL)
+}
+
+type Leaf = (...args: unknown[]) => unknown
+
+/**
+ * Deep copy of a translation tree with every string leaf branded. Function
+ * leaves are wrapped so their string results are branded too; arrays and
+ * nested records recurse; anything else passes through untouched.
+ */
+export function brandCatalog<T>(tree: T): T {
+  if (typeof tree === 'string') {
+    return brandText(tree) as T
+  }
+
+  if (typeof tree === 'function') {
+    const leaf = tree as unknown as Leaf
+
+    return ((...args: unknown[]) => {
+      const out = leaf(...args)
+
+      return typeof out === 'string' ? brandText(out) : out
+    }) as T
+  }
+
+  if (Array.isArray(tree)) {
+    return tree.map(item => brandCatalog(item)) as T
+  }
+
+  if (tree !== null && typeof tree === 'object') {
+    const out: Record<string, unknown> = {}
+
+    for (const [key, value] of Object.entries(tree as Record<string, unknown>)) {
+      out[key] = brandCatalog(value)
+    }
+
+    return out as T
+  }
+
+  return tree
+}

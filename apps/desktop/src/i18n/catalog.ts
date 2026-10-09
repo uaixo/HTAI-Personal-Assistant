@@ -1,3 +1,5 @@
+import { brandCatalog } from '@hermes/shared/brand'
+
 import { ar } from './ar'
 import { de } from './de'
 import { en } from './en'
@@ -9,10 +11,11 @@ import type { BundledLocale, Translations } from './types'
 import { zh } from './zh'
 import { zhHant } from './zh-hant'
 
-/** The catalogs compiled into the app. Runtime-registered languages (plugin
- *  packs, backend `.desktop.yaml` packs) are NOT here — resolve through
- *  `resolveTranslations()` in `./registry`, which layers them over these. */
-export const TRANSLATIONS: Record<BundledLocale, Translations> = {
+/** The catalogs compiled into the app, branded as they load (`brandCatalog`).
+ *  Runtime-registered languages (plugin packs, backend `.desktop.yaml` packs)
+ *  are NOT here — resolve through `resolveTranslations()` in `./registry`,
+ *  which layers them over these. */
+export const TRANSLATIONS: Record<BundledLocale, Translations> = brandCatalog({
   en,
   zh,
   'zh-hant': zhHant,
@@ -22,7 +25,7 @@ export const TRANSLATIONS: Record<BundledLocale, Translations> = {
   fr,
   de,
   es
-}
+})
 
 export const BUNDLED_LOCALES = Object.keys(TRANSLATIONS) as readonly BundledLocale[]
 
