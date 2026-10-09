@@ -20,6 +20,7 @@ _LEGACY = ("Hermes Agent", "Hermes", "☤")
     ("☤ Starting Hermes update…", f"{SYMBOL} Starting {AGENT_NAME} update…"),
     ("Hermes Agent v0.18.2 (abc123)", f"{AGENT_NAME} v0.18.2 (abc123)"),
     ("See 「Hermes」 and 【Hermes Agent】", f"See 「{AGENT_NAME}」 and 【{AGENT_NAME}】"),
+    (r"Name | Status\nHermes | ok\tHermes", rf"Name | Status\n{AGENT_NAME} | ok\t{AGENT_NAME}"),
 ])
 def test_brand_text_replaces_the_product_name_in_prose(text, expected):
     assert brand_text(text) == expected

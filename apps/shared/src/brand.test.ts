@@ -15,6 +15,7 @@ describe('brandText', () => {
     )
     expect(brandText('☤ Starting Hermes update…')).toBe(`${SYMBOL} Starting ${AGENT_NAME} update…`)
     expect(brandText('Hermes Agent v0.18.2')).toBe(`${AGENT_NAME} v0.18.2`)
+    expect(brandText('Status\\nHermes | ok')).toBe(`Status\\n${AGENT_NAME} | ok`)
   })
 
   it('leaves identifiers, URLs and the Hermes model family alone', () => {

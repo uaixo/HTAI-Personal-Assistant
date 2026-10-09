@@ -22,6 +22,7 @@ from typing import Any
 REPO = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO))
 import hermes_yaml as yaml
+from hermes_brand import brand_text
 
 DOCS = REPO / "website" / "docs"
 SKILLS_PAGES = DOCS / "user-guide" / "skills"
@@ -342,7 +343,9 @@ def render_skill_page(
 
     title = f"{name}"
     # Heuristic nicer title from name
-    display_name = name.replace("-", " ").replace("_", " ").title()
+    # Branded like every other title people read: the slug keeps its upstream name (skill ids are
+    # identifiers), the heading derived from it does not.
+    display_name = brand_text(name.replace("-", " ").replace("_", " ").title())
 
     hermes_meta = (fm.get("metadata") or {}).get("hermes") or {}
     tags = hermes_meta.get("tags") or []

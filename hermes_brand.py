@@ -30,11 +30,14 @@ SYMBOL = "✦"
 # ``Hermes-Setup.exe`` (hyphenated), ``NousResearch.Hermes`` (dotted), ``OpenHermes``/``HermesCLI``
 # (joined) — and the Hermes model family (``Hermes 4``, ``Hermes 3 & 4``, ``Hermes-3-Llama``).
 # ``Hermes.app`` / ``Hermes.exe`` ARE renamed: the desktop bundle is named after the product.
-_LEGACY_BRAND = re.compile(r"(?<![A-Za-z0-9_.\-])Hermes(?: Agent)?(?![A-Za-z0-9_\-])(?! \d)")
+# In source literals the name may follow an escape sequence (``"...\\nHermes"``): the ``\\n`` is
+# whitespace once the string is read, so the second lookbehind lets it through.
+_BOUNDARY_BEFORE = r"(?:(?<![A-Za-z0-9_.\-])|(?<=\\[ntr]))"
+_LEGACY_BRAND = re.compile(_BOUNDARY_BEFORE + r"Hermes(?: Agent)?(?![A-Za-z0-9_\-])(?! \d)")
 # ``Hermes' tool store`` -> ``NousAI's tool store``: a bare-apostrophe possessive reads as a typo on a
 # name that does not end in s. Only a word-bounded name followed by ``' <word>`` qualifies, so the
 # closing quote of ``'Hermes'`` (opened by the quote before the name) is never mistaken for one.
-_LEGACY_POSSESSIVE = re.compile(r"(?<![A-Za-z0-9_.\-'’])Hermes(?: Agent)?(?P<apostrophe>['’])(?= [A-Za-z])")
+_LEGACY_POSSESSIVE = re.compile(r"(?<!['’])" + _BOUNDARY_BEFORE + r"Hermes(?: Agent)?(?P<apostrophe>['’])(?= [A-Za-z])")
 _LEGACY_SYMBOL = "☤"
 
 

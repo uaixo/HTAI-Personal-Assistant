@@ -15,10 +15,12 @@ export const SYMBOL = '✦'
 // identifiers (`X-Hermes-Token`, `Hermes-Setup.exe`, `NousResearch.Hermes`,
 // `OpenHermes`) and the Hermes model family (`Hermes 4`) are left alone, while
 // `Hermes.app` / `Hermes.exe` follow the product name.
-const LEGACY_BRAND = /(?<![A-Za-z0-9_.-])Hermes(?: Agent)?(?![A-Za-z0-9_-])(?! \d)/g
+// In source literals the name may follow an escape sequence (`"...\nHermes"`):
+// the `\n` is whitespace once the string is read, so it counts as a boundary.
+const LEGACY_BRAND = /(?:(?<![A-Za-z0-9_.-])|(?<=\\[ntr]))Hermes(?: Agent)?(?![A-Za-z0-9_-])(?! \d)/g
 // `Hermes' tool store` -> `NousAI's tool store`; the closing quote of `'Hermes'`
 // (opened by the quote before the name) never qualifies.
-const LEGACY_POSSESSIVE = /(?<![A-Za-z0-9_.\-'’])Hermes(?: Agent)?(['’])(?= [A-Za-z])/g
+const LEGACY_POSSESSIVE = /(?<!['’])(?:(?<![A-Za-z0-9_.-])|(?<=\\[ntr]))Hermes(?: Agent)?(['’])(?= [A-Za-z])/g
 const LEGACY_SYMBOL = /☤/g
 
 /** `NousAI's` for a possessive; untouched when the apostrophe closes a quote
