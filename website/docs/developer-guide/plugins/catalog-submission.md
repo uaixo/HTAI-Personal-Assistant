@@ -68,6 +68,7 @@ the gallery. There is no separate listing to maintain.
 
 ## Admission rules
 
+<!-- rebrand: keep-start -- the block must match plugin-catalog/README.md word for word, and the catalog is not rebranded -->
 <!-- admission-rules:start (mirrored in website/docs/developer-guide/plugins/catalog-submission.md; tests/website/test_catalog_rules_mirror.py keeps them identical) -->
 1. **Human-merged gate.** Entries are added *only* via a PR to the
    `hermes-agent` repository, reviewed and merged by a maintainer. There is
@@ -88,7 +89,7 @@ the gallery. There is no separate listing to maintain.
 5. **Owner-or-major-contributor submissions, or a maintainer-curated sweep.**
    An entry may be submitted by the plugin repository's owner or a major
    contributor to it; drive-by submissions of third-party repos are declined.
-   NousAI maintainers may also add entries in batches from a reviewed sweep
+   Hermes maintainers may also add entries in batches from a reviewed sweep
    of community plugins (every pin validated and scanned at the pinned
    commit, self-updater and credential-store checks run, English-first UI).
    Authors of swept-in entries keep control: a PR from the owner adjusting
@@ -115,7 +116,7 @@ the gallery. There is no separate listing to maintain.
    hide, click or rewrite core UI). `hermes plugins validate` refuses these at
    admission (`desktop surface` check); a plugin that needs a capability the
    SDK lacks asks for an SDK hook instead of patching around it.
-9. **No runtime overrides of NousAI core.** A listed plugin extends NousAI only
+9. **No runtime overrides of Hermes core.** A listed plugin extends Hermes only
    through public surfaces: hooks, middleware, provider profiles and the
    other `register_*` APIs, and Desktop SDK slots and routes. It must not
    replace, wrap or rebind core functions, methods, module attributes or
@@ -125,10 +126,10 @@ the gallery. There is no separate listing to maintain.
    can break both. `hermes plugins validate` refuses these at admission (`no
    core override` check). If the hook you need does not exist, open an issue
    describing it: we would rather add the seam than list a patch.
-10. **Dependency security policy is the plugin's.** NousAI's 14-day
-   `exclude-newer` quarantine covers NousAI's own dependencies only; a plugin's
+10. **Dependency security policy is the plugin's.** Hermes's 14-day
+   `exclude-newer` quarantine covers Hermes's own dependencies only; a plugin's
    `python_dependencies` / `pyproject.toml` install under the plugin's policy
-   (no quarantine, still inside NousAI's core constraints). Reviewers read the
+   (no quarantine, still inside Hermes's core constraints). Reviewers read the
    dependency list at the pinned SHA: bare floors (`>=X` with no upper bound)
    and floors on the newest release get a request for the oldest
    API-compatible floor plus an upper bound, and authors are strongly
@@ -144,8 +145,8 @@ the gallery. There is no separate listing to maintain.
    presenting itself as another vendor's client, is not admitted without an
    explicit maintainer ruling; a read-only build is the usual way through.
 12. **Approvals and unattended runs are respected.** A plugin never routes around
-   NousAI's approval system: no auto-approving, no disabling guards, and no
-   spawning NousAI or shell children that inherit YOLO or non-interactive mode
+   Hermes's approval system: no auto-approving, no disabling guards, and no
+   spawning Hermes or shell children that inherit YOLO or non-interactive mode
    to run commands nobody approved. Anything that waits for a person (a prompt,
    an OAuth browser flow) fails cleanly or times out under cron, the messaging
    gateway and other unattended runs instead of hanging the agent.
@@ -158,7 +159,7 @@ the gallery. There is no separate listing to maintain.
 14. **Compatibility metadata is truthful.** `requires_hermes` is a SemVer floor
    (`">=0.21.5"`), never a CalVer date, and never newer than the current release
    (the loader skips the plugin otherwise). `version` matches the pinned code,
-   and Python dependencies resolve under NousAI's core constraints
+   and Python dependencies resolve under Hermes's core constraints
    (`hermes plugins validate --install-deps` is what CI runs).
 15. **No skins or forks of bundled plugins.** A change to a bundled plugin is a
    PR against `hermes-agent`, not a competing listing, and vendor-lookalike skins
@@ -171,6 +172,7 @@ the gallery. There is no separate listing to maintain.
    changes is declined in favour of the original. A listed fork names its origin
    in its disclosure line (`Derived from <entry>`).
 <!-- admission-rules:end -->
+<!-- rebrand: keep-end -->
 
 ## Updating your entry
 

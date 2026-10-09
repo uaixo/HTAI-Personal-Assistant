@@ -20,6 +20,7 @@ PY_SOURCE = '''"""Module docstring about Hermes Agent stays."""
 LABEL = "☤ Hermes"
 PATH = "~/.hermes/config.yaml"
 HEADER = {"X-Hermes-Token": "Hermes Agent"}
+RAW = b"Name=Hermes\\n"
 MSG = f"Hermes Agent v{VERSION} ({DATE})"  # trailing comment: Hermes
 KEEP = "Hermes Agent"  # rebrand: keep
 # rebrand: keep
@@ -43,6 +44,7 @@ def test_python_literals_are_branded_but_docstrings_comments_and_kept_lines_are_
     assert f'LABEL = "{SYMBOL} {AGENT_NAME}"' in out
     assert 'PATH = "~/.hermes/config.yaml"' in out
     assert f'HEADER = {{"X-Hermes-Token": "{AGENT_NAME}"}}' in out
+    assert f'RAW = b"Name={AGENT_NAME}\\n"' in out
     assert f'MSG = f"{AGENT_NAME} v{{VERSION}} ({{DATE}})"  # trailing comment: Hermes' in out
     assert 'KEEP = "Hermes Agent"  # rebrand: keep' in out
     assert 'NEXT = "Hermes"' in out

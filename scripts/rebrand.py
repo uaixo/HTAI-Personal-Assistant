@@ -111,7 +111,7 @@ def _docstring_ids(tree: ast.AST) -> set[int]:
 
 
 def rebrand_python(text: str) -> str:
-    """Brand every string constant except docstrings and kept lines; comments are never touched."""
+    """Brand every str and bytes constant except docstrings and kept lines; comments are never touched."""
     tree = ast.parse(text)
     kept = kept_lines(text.split("\n"))
     docstrings = _docstring_ids(tree)
@@ -121,7 +121,7 @@ def rebrand_python(text: str) -> str:
         line_starts.append(line_starts[-1] + len(line) + 1)
     spans: set[tuple[int, int]] = set()
     for node in ast.walk(tree):
-        if not (isinstance(node, ast.Constant) and isinstance(node.value, str)):
+        if not (isinstance(node, ast.Constant) and isinstance(node.value, (str, bytes))):
             continue
         if id(node) in docstrings or node.end_lineno is None or node.end_col_offset is None:
             continue

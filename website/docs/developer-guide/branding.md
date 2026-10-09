@@ -47,7 +47,10 @@ possessive without an s (`Hermes' tool store`) becomes `'s`.
 
 A line that carries `rebrand: keep`, the line after such a comment, or a `rebrand: keep-start` …
 `rebrand: keep-end` block is left alone by the script. Use it for text that must match what older
-installs wrote to disk (`hermes_cli/default_soul.py` does this for the auto-seeded SOUL.md).
+installs wrote to disk (`hermes_cli/default_soul.py` does this for the auto-seeded SOUL.md) or
+text that must mirror an unbranded source word for word (the admission rules in
+`website/docs/developer-guide/plugins/catalog-submission.md` copy `plugin-catalog/README.md`, which
+the script never touches).
 
 ## After a merge from upstream
 

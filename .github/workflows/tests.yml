@@ -108,8 +108,11 @@ jobs:
           scripts/run_tests.sh
         env:
           HERMES_TEST_SLICE: ${{ matrix.slice }}/2
-          HERMES_TEST_WORKERS: 32
-          HERMES_TEST_FILE_TIMEOUT: 600
+          # Standard runners have 4 vCPUs: one core stays free for the
+          # subprocesses the tests spawn, and the per-file budget absorbs
+          # the slower wall clock of the heavy files.
+          HERMES_TEST_WORKERS: 3
+          HERMES_TEST_FILE_TIMEOUT: 900
           # Ensure tests don't accidentally call real APIs
           OPENROUTER_API_KEY: ""
           OPENAI_API_KEY: ""
