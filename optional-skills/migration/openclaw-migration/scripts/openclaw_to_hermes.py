@@ -525,11 +525,6 @@ _REBRAND_PATTERNS: list[tuple[re.Pattern, str]] = [
 ]
 
 
-# The lowercase form is the IDENTIFIER, not the brand: ``~/.openclaw`` must become ``~/.hermes``,
-# the real home directory, whatever the product is called in prose.
-_REBRAND_IDENTIFIER = "hermes"  # rebrand: keep
-
-
 def _case_preserving_replacement(replacement: str):
     """Return a re.sub replacement fn that substitutes the identifier form when the
     matched text was all-lowercase.
@@ -541,7 +536,7 @@ def _case_preserving_replacement(replacement: str):
     def _sub(match: "re.Match[str]") -> str:
         matched = match.group(0)
         if matched and matched.islower():
-            return _REBRAND_IDENTIFIER
+            return "hermes"  # rebrand: keep -- the identifier form: ~/.openclaw -> ~/.hermes, the real home
         return replacement
     return _sub
 

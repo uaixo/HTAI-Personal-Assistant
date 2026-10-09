@@ -123,8 +123,7 @@ class TestOneShotRecoveries:
         calls = []
         agent = _agent(api_key=make_jwt(account_tier="free", client_id="hermes-cli"),
                        _try_refresh_nous_client_credentials=lambda **kw: calls.append(kw) or True)
-        # rebrand: keep -- the gateway's own wording, matched by hermes_cli.anon_auth
-        body = {"status": 400, "message": "This endpoint serves anonymous Hermes Agent accounts only. Use https://inference-api.nousresearch.com with your API key or signed-in account."}
+        body = {"status": 400, "message": "This endpoint serves anonymous Hermes Agent accounts only. Use https://inference-api.nousresearch.com with your API key or signed-in account."}  # rebrand: keep -- the gateway's own wording, matched by hermes_cli.anon_auth
         classified = classify_api_error(_gateway_error(400, body), provider="nous", base_url=WELCOME, api_key=agent.api_key)
         assert classified.error_context["welcome_route"] == "named_on_welcome_host"
         retry = TurnRetryState()
