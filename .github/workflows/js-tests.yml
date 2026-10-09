@@ -87,5 +87,11 @@ jobs:
       # ``check:*`` script needs no change here. An empty list is an error and
       # not an empty run, because an empty run reports green after it checks
       # nothing.
+      #
+      # Two checks at a time on the standard 4-core runner: vitest, tsc and
+      # eslint each size their worker pool from the core count, so four checks
+      # at once oversubscribe the box and the suites that spawn real processes
+      # trip their wall-clock timeouts. Two keeps the long pole (the desktop
+      # renderer tests) well inside the job timeout.
       - name: Run all workspace checks
-        run: node .github/scripts/run-workspace-checks.mjs
+        run: node .github/scripts/run-workspace-checks.mjs --concurrency 2
