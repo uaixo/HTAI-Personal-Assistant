@@ -533,7 +533,7 @@ def _case_preserving_replacement(replacement: str):
     filesystem path like ``~/.openclaw/config.yaml`` rewrites to
     ``~/.hermes/config.yaml`` (the real home) instead of a directory that does not exist.
     """
-    def _sub(match: "re.Match[str]") -> str:
+    def _sub(match: re.Match[str]) -> str:
         matched = match.group(0)
         if matched and matched.islower():
             return "hermes"  # rebrand: keep -- the identifier form: ~/.openclaw -> ~/.hermes, the real home
