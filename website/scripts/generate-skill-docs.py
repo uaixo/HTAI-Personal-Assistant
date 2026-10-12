@@ -341,7 +341,6 @@ def render_skill_page(
     if len(short_desc) > 160:
         short_desc = short_desc[:157] + "..."
 
-    title = f"{name}"
     # Heuristic nicer title from name
     # Branded like every other title people read: the slug keeps its upstream name (skill ids are
     # identifiers), the heading derived from it does not.
@@ -472,8 +471,8 @@ def build_catalog_md_bundled(entries: list[tuple[dict[str, Any], dict[str, Any]]
         if meta["source_kind"] != "bundled":
             continue
         by_cat[meta["category"]].append((meta, parsed))
-    for k in by_cat:
-        by_cat[k].sort(key=lambda e: e[0]["slug"])
+    for entries in by_cat.values():
+        entries.sort(key=lambda e: e[0]["slug"])
 
     lines = [
         "---",
@@ -518,8 +517,8 @@ def build_catalog_md_optional(entries: list[tuple[dict[str, Any], dict[str, Any]
         if meta["source_kind"] != "optional":
             continue
         by_cat[meta["category"]].append((meta, parsed))
-    for k in by_cat:
-        by_cat[k].sort(key=lambda e: e[0]["slug"])
+    for entries in by_cat.values():
+        entries.sort(key=lambda e: e[0]["slug"])
 
     lines = [
         "---",
@@ -704,14 +703,6 @@ def write_sidebar(entries):
     sidebar_path = REPO / "website" / "sidebars.ts"
     text = sidebar_path.read_text(encoding="utf-8")
     # Replace the existing Skills block.
-    pattern = re.compile(
-        r"        \{\n"
-        r"          type: 'category',\n"
-        r"          label: 'Skills',\n"
-        r"(?:.*?\n)*?"
-        r"        \},\n",
-        re.DOTALL,
-    )
     # Safer: match the exact current block shape.
     old_block_start = "        {\n          type: 'category',\n          label: 'Skills',\n"
     i = text.find(old_block_start)

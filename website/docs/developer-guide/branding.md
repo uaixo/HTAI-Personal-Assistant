@@ -59,6 +59,7 @@ the script never touches).
 git merge upstream/main          # resolve conflicts in favour of upstream where only wording differs
 python scripts/rebrand.py        # re-brand whatever the merge brought in (idempotent)
 python scripts/rebrand.py --check   # exit 1 while anything still carries the upstream name
+scripts/run-in-hermes-env python scripts/ci/prompt_surface.py render   # the snapshot's token estimates follow the shorter name
 ```
 
 The script's own contracts live in `tests/scripts/test_rebrand.py`; the brand rule's in

@@ -16,6 +16,7 @@ import { billingEn } from './en/billing.js'
 import { chatBitsEn } from './en/chatBits.js'
 import { chromeEn } from './en/chrome.js'
 import { connectionEn } from './en/connection.js'
+import { connectorsEn } from './en/connectors.js'
 import { contentEn } from './en/content.js'
 import { gatewayMsgEn } from './en/gatewayMsg.js'
 import { hubsEn } from './en/hubs.js'
@@ -49,7 +50,8 @@ export const en = brandCatalog({
   ...chatBitsEn,
   ...billingEn,
   ...subscriptionEn,
-  ...connectionEn
+  ...connectionEn,
+  ...connectorsEn
 })
 
 /** The sibling catalogs `en` is composed from, for the disjointness test. */
@@ -71,5 +73,6 @@ export const EN_SIBLINGS: readonly Record<string, unknown>[] = [
   chatBitsEn,
   billingEn,
   subscriptionEn,
-  connectionEn
+  connectionEn,
+  connectorsEn
 ]
