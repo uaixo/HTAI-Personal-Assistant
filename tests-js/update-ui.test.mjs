@@ -170,7 +170,9 @@ test.skipIf(process.platform === 'win32')('probe Git reaches the staged main eve
   } finally {
     fs.rmSync(root, { recursive: true, force: true })
   }
-})
+  // Two real `hermes_cli.source_check` runs (interpreter start + Git probe each): about 7 s
+  // on a standard 4-core runner, past vitest's 5 s default.
+}, 60_000)
 
 test.skipIf(process.platform === 'win32')('historical venv install without a PM launcher still checks staged Git main', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'desktop-legacy-branch-'))

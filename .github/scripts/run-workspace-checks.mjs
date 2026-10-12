@@ -131,6 +131,16 @@ async function main() {
   }
 
   if (failed.length > 0) {
+    // A failed check prints its output when it finishes, which can be
+    // thousands of lines above the end of the job log once the long checks
+    // finish after it. Print it again here, where the tail of the log is.
+    for (const r of failed) {
+      const label = `${r.unit.pkg} :: ${r.unit.script}`
+      if (IS_CI) console.log(`::group::FAIL ${label} (output again, for the tail of the log)`)
+      else console.log(`----- FAIL ${label} (output again) -----`)
+      process.stdout.write(r.output.endsWith('\n') ? r.output : r.output + '\n')
+      if (IS_CI) console.log('::endgroup::')
+    }
     for (const r of failed) console.error(`::error::${r.unit.pkg} :: ${r.unit.script} failed`)
     console.error(`::error::${failed.length} of ${results.length} checks failed`)
     // Not process.exit(): it drops what stdout still buffers, which is the failing check's output.
