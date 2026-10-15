@@ -13,6 +13,7 @@ import { brandCatalog } from '@hermes/shared/brand'
 
 import { appEn } from './en/app.js'
 import { billingEn } from './en/billing.js'
+import { canonicalEn } from './en/canonical.js'
 import { chatBitsEn } from './en/chatBits.js'
 import { chromeEn } from './en/chrome.js'
 import { connectionEn } from './en/connection.js'
@@ -51,6 +52,7 @@ export const en = brandCatalog({
   ...billingEn,
   ...subscriptionEn,
   ...connectionEn,
+  ...canonicalEn,
   ...connectorsEn
 })
 
@@ -74,5 +76,6 @@ export const EN_SIBLINGS: readonly Record<string, unknown>[] = [
   billingEn,
   subscriptionEn,
   connectionEn,
+  canonicalEn,
   connectorsEn
 ]

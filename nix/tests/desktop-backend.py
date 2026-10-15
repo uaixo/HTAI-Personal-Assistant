@@ -79,8 +79,10 @@ with tempfile.TemporaryDirectory(prefix="hermes-desktop-backend-") as temporary:
                     output += desktop_log.read_text()
                 assert "WRONG_BACKEND_SELECTED" not in output, output
                 assert child.poll() is None, output
-                if "HERMES_BACKEND_READY port=" in output:
-                    assert f"existing NousAI CLI at {expected}" in output, output
+                # Desktop attaches to `hermes gateway ensure` (the daemon serves the dashboard), so
+                # readiness is Desktop's own attach line, not a spawned `hermes serve` sentinel.
+                if "[backend] NousAI gateway is ready" in output:
+                    assert f"[backend] using existing NousAI CLI at {expected}" in output, output
                     print("PASS: packaged desktop selected its pinned backend over the mutable install")
                     break
                 time.sleep(0.1)
