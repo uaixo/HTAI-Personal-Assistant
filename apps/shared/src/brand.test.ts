@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { AGENT_NAME, brandCatalog, brandText, SYMBOL } from './brand'
+import { AGENT_NAME, brandCatalog, brandText, SYMBOL, WORDMARK } from './brand'
 
 describe('brandText', () => {
   it('replaces the upstream product name and glyph in prose', () => {
@@ -18,11 +18,21 @@ describe('brandText', () => {
     expect(brandText('Status\\nHermes | ok')).toBe(`Status\\n${AGENT_NAME} | ok`)
   })
 
+  it('spells the all-caps wordmark in the brand at the same width', () => {
+    expect(brandText('HERMES AGENT')).toBe(WORDMARK)
+    expect(brandText('the HERMES AGENT wordmark (HERMES AGENT)')).toBe(`the ${WORDMARK} wordmark (${WORDMARK})`)
+    expect(WORDMARK).toHaveLength('HERMES AGENT'.length)
+  })
+
   it('leaves identifiers, URLs and the Hermes model family alone', () => {
     for (const text of [
       'hermes doctor',
       '~/.hermes/config.yaml',
       'HERMES_HOME',
+      'HERMES_AGENT=true',
+      'HERMES.md',
+      'HERMES AGENTS',
+      'HERMES ONLINE',
       'hermes://open',
       'X-Hermes-Session-Token',
       'Hermes-Setup.exe',
@@ -39,10 +49,11 @@ describe('brandText', () => {
   })
 
   it('is idempotent', () => {
-    const once = brandText('☤ Hermes Agent: Hermes, HermesCLI, hermes update, Hermes 4')
+    const once = brandText('☤ Hermes Agent: Hermes, HermesCLI, hermes update, Hermes 4, HERMES AGENT')
 
     expect(brandText(once)).toBe(once)
     expect(once).not.toContain('Hermes Agent')
+    expect(once).not.toContain('HERMES AGENT')
     expect(once).toContain('HermesCLI')
   })
 })

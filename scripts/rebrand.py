@@ -34,7 +34,7 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPTS_DIR.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from hermes_brand import AGENT_NAME, SYMBOL, _LEGACY_BRAND, _LEGACY_SYMBOL, brand_text
+from hermes_brand import AGENT_NAME, SYMBOL, WORDMARK, _LEGACY_BRAND, _LEGACY_SYMBOL, _LEGACY_WORDMARK, brand_text
 
 KEEP_MARKER = "rebrand: keep"
 
@@ -144,6 +144,7 @@ def rebrand_typescript(paths: list[str], *, write: bool) -> list[str]:
         return []
     node = shutil.which("node")
     payload = {"files": paths, "pattern": _LEGACY_BRAND.pattern, "agentName": AGENT_NAME,
+               "wordmarkPattern": _LEGACY_WORDMARK.pattern, "wordmark": WORDMARK,
                "legacySymbol": _LEGACY_SYMBOL, "symbol": SYMBOL, "keepMarker": KEEP_MARKER, "write": write}
     if node is not None:
         proc = subprocess.run([node, str(SCRIPTS_DIR / "rebrand_ts.mjs")], input=json.dumps(payload),

@@ -31,9 +31,9 @@ export default function Welcome() {
           }
         >
           <span>
-            <span>HERMES AGENT</span>
+            <span>NOUSAI AGENT</span>
           </span>
-          <span aria-hidden="true">HERMES AGENT</span>
+          <span aria-hidden="true">NOUSAI AGENT</span>
         </p>
 
         <p className="m-0 text-center text-base leading-normal tracking-tight text-muted-foreground">

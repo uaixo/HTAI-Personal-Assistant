@@ -41,7 +41,10 @@ Identifiers, URLs and the upstream model family. The rule is word-bounded on bot
 | `Hermes 4`, `Hermes 3 & 4`, `Hermes-3-Llama` | the model family |
 
 `Hermes.app` / `Hermes.exe` **are** renamed: the desktop bundle is named after the product. A
-possessive without an s (`Hermes' tool store`) becomes `'s`.
+possessive without an s (`Hermes' tool store`) becomes `'s`. The all-caps wordmark `HERMES AGENT`
+(the empty desktop chat, the installer's welcome screen) becomes `NOUSAI AGENT`: the same twelve
+characters, so the fitted lettering keeps its size. Any other all-caps `HERMES` (`HERMES.md`,
+`$HERMES`) is an identifier and stays.
 <!-- rebrand: keep-end -->
 
 ## Keeping text unbranded

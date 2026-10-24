@@ -4,9 +4,9 @@ catalog layer serves branded text while the shipped YAML stays upstream-identica
 import pytest
 
 from agent import i18n, i18n_layers
-from hermes_brand import AGENT_NAME, SYMBOL, VENDOR, brand_text
+from hermes_brand import AGENT_NAME, SYMBOL, VENDOR, WORDMARK, brand_text
 
-_LEGACY = ("Hermes Agent", "Hermes", "☤")
+_LEGACY = ("HERMES AGENT", "Hermes Agent", "Hermes", "☤")
 
 
 @pytest.mark.parametrize(("text", "expected"), [
@@ -21,13 +21,20 @@ _LEGACY = ("Hermes Agent", "Hermes", "☤")
     ("Hermes Agent v0.18.2 (abc123)", f"{AGENT_NAME} v0.18.2 (abc123)"),
     ("See 「Hermes」 and 【Hermes Agent】", f"See 「{AGENT_NAME}」 and 【{AGENT_NAME}】"),
     (r"Name | Status\nHermes | ok\tHermes", rf"Name | Status\n{AGENT_NAME} | ok\t{AGENT_NAME}"),
+    ("HERMES AGENT", WORDMARK),
+    ("the HERMES AGENT wordmark (HERMES AGENT)", f"the {WORDMARK} wordmark ({WORDMARK})"),
 ])
 def test_brand_text_replaces_the_product_name_in_prose(text, expected):
     assert brand_text(text) == expected
 
 
+def test_the_wordmark_keeps_the_upstream_lettering_width():
+    assert len(WORDMARK) == len("HERMES AGENT") and WORDMARK.endswith(" AGENT")
+
+
 @pytest.mark.parametrize("text", [
     "hermes doctor", "~/.hermes/config.yaml", "HERMES_HOME", "hermes_cli.main", "hermes://open",
+    "HERMES_AGENT=true", "HERMES.md", "$HERMES", "HERMES AGENTS", "AS HERMES", "HERMES ONLINE",
     "X-Hermes-Session-Token", "Hermes-Setup.exe", "Hermes-4-405B", "NousResearch.Hermes",
     "OpenHermes-2.5", "DeepHermes", "HermesCLI", "HermesE2E-1", "hermes-agent.nousresearch.com",
     "Hermes 4", "Hermes 3 & 4 models", "Hermes-3-Llama-3.1-70B", "github.com/NousResearch/Hermes-Agent",
@@ -37,9 +44,9 @@ def test_brand_text_leaves_identifiers_urls_and_model_names_alone(text):
 
 
 def test_brand_text_is_idempotent_and_never_leaves_the_upstream_brand():
-    once = brand_text("☤ Hermes Agent: Hermes, HermesCLI, hermes update, Hermes 4")
+    once = brand_text("☤ Hermes Agent: Hermes, HermesCLI, hermes update, Hermes 4, HERMES AGENT")
     assert brand_text(once) == once
-    assert "Hermes Agent" not in once and SYMBOL in once
+    assert "Hermes Agent" not in once and "HERMES AGENT" not in once and SYMBOL in once
     assert "HermesCLI" in once and "hermes update" in once and "Hermes 4" in once
 
 

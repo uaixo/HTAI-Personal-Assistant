@@ -24,6 +24,9 @@ AGENT_NAME = "NousAI"
 VENDOR = "Nous Research"
 # Glyph that marks the agent in response labels and short notices (the upstream caduceus ``☤``).
 SYMBOL = "✦"
+# The display lettering an empty desktop chat and the installer's welcome screen spell out. Twelve
+# characters, like the upstream ``HERMES AGENT``, so the fitted type keeps its size.
+WORDMARK = f"{AGENT_NAME.upper()} AGENT"
 
 # The upstream product names as they appear in prose, bounded on both sides so identifiers stay
 # untouched: ``hermes_cli`` (lowercase), ``HERMES_HOME`` (uppercase), ``X-Hermes-Token`` and
@@ -39,6 +42,9 @@ _LEGACY_BRAND = re.compile(_BOUNDARY_BEFORE + r"Hermes(?: Agent)?(?![A-Za-z0-9_\
 # closing quote of ``'Hermes'`` (opened by the quote before the name) is never mistaken for one.
 _LEGACY_POSSESSIVE = re.compile(r"(?<!['’])" + _BOUNDARY_BEFORE + r"Hermes(?: Agent)?(?P<apostrophe>['’])(?= [A-Za-z])")
 _LEGACY_SYMBOL = "☤"
+# The one all-caps form that is brand: the two-word wordmark. Every other all-caps ``HERMES`` is an
+# identifier (``HERMES_HOME``, ``HERMES.md``, ``$HERMES``) and stays.
+_LEGACY_WORDMARK = re.compile(_BOUNDARY_BEFORE + r"HERMES AGENT(?![A-Za-z0-9_\-])")
 
 
 def _possessive(match: re.Match[str]) -> str:
@@ -53,8 +59,9 @@ def _possessive(match: re.Match[str]) -> str:
 
 def brand_text(text: str) -> str:
     """``text`` with every upstream product name and glyph replaced by the brand. Idempotent."""
+    text = _LEGACY_WORDMARK.sub(WORDMARK, text)
     text = _LEGACY_POSSESSIVE.sub(_possessive, text)
     return _LEGACY_BRAND.sub(AGENT_NAME, text).replace(_LEGACY_SYMBOL, SYMBOL)
 
 
-__all__ = ["AGENT_NAME", "SYMBOL", "VENDOR", "brand_text"]
+__all__ = ["AGENT_NAME", "SYMBOL", "VENDOR", "WORDMARK", "brand_text"]

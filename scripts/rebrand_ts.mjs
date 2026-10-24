@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Brand string literals in TypeScript / JavaScript sources — the TS half of
 // scripts/rebrand.py, which drives it. Reads {files, pattern, agentName,
-// legacySymbol, symbol, keepMarker, write} as JSON on stdin and prints the
-// paths it changed (or would change), one per line.
+// wordmarkPattern, wordmark, legacySymbol, symbol, keepMarker, write} as JSON
+// on stdin and prints the paths it changed (or would change), one per line.
 //
 // Only literal text is touched: string literals, template literal chunks,
 // regular-expression literals and JSX text. Identifiers, comments and import paths are never rewritten, so a
@@ -21,8 +21,10 @@ try {
 
 const input = JSON.parse(readFileSync(0, 'utf8'))
 const brand = new RegExp(input.pattern, 'g')
+const wordmark = new RegExp(input.wordmarkPattern, 'g')
 const symbol = new RegExp(input.legacySymbol, 'g')
-const rebrandText = text => text.replace(brand, input.agentName).replace(symbol, input.symbol)
+const rebrandText = text =>
+  text.replace(wordmark, input.wordmark).replace(brand, input.agentName).replace(symbol, input.symbol)
 
 const KINDS = {
   cjs: ts.ScriptKind.JS,

@@ -10,6 +10,10 @@ export const AGENT_NAME = 'NousAI'
 export const VENDOR = 'Nous Research'
 /** Glyph that marks the agent in response labels and short notices. */
 export const SYMBOL = '✦'
+/** The display lettering an empty chat and the installer's welcome screen spell
+ *  out: twelve characters, like the upstream `HERMES AGENT`, so the fitted type
+ *  keeps its size. */
+export const WORDMARK = `${AGENT_NAME.toUpperCase()} AGENT`
 
 // Same rule as `hermes_brand._LEGACY_BRAND`: word-bounded on both sides so
 // identifiers (`X-Hermes-Token`, `Hermes-Setup.exe`, `NousResearch.Hermes`,
@@ -22,6 +26,9 @@ const LEGACY_BRAND = /(?:(?<![A-Za-z0-9_.-])|(?<=\\[ntr]))Hermes(?: Agent)?(?![A
 // (opened by the quote before the name) never qualifies.
 const LEGACY_POSSESSIVE = /(?<!['’])(?:(?<![A-Za-z0-9_.-])|(?<=\\[ntr]))Hermes(?: Agent)?(['’])(?= [A-Za-z])/g
 const LEGACY_SYMBOL = /☤/g
+// The one all-caps form that is brand: the two-word wordmark. Every other
+// all-caps `HERMES` is an identifier (`HERMES_HOME`, `HERMES.md`) and stays.
+const LEGACY_WORDMARK = /(?:(?<![A-Za-z0-9_.-])|(?<=\\[ntr]))HERMES AGENT(?![A-Za-z0-9_-])/g
 
 /** `NousAI's` for a possessive; untouched when the apostrophe closes a quote
  *  opened earlier on the line (`'Run Hermes' now`), which the brand rule then
@@ -35,7 +42,11 @@ function possessive(match: string, apostrophe: string, offset: number, whole: st
 
 /** `text` with every upstream product name and glyph replaced by the brand. Idempotent. */
 export function brandText(text: string): string {
-  return text.replace(LEGACY_POSSESSIVE, possessive).replace(LEGACY_BRAND, AGENT_NAME).replace(LEGACY_SYMBOL, SYMBOL)
+  return text
+    .replace(LEGACY_WORDMARK, WORDMARK)
+    .replace(LEGACY_POSSESSIVE, possessive)
+    .replace(LEGACY_BRAND, AGENT_NAME)
+    .replace(LEGACY_SYMBOL, SYMBOL)
 }
 
 type Leaf = (...args: unknown[]) => unknown
