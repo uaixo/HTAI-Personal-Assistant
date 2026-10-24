@@ -8,8 +8,10 @@ Usage (from repo root):
 Sources of truth — two axes, composed per target:
   Girl art (vector):  assets/nous-girl-black.svg  (black positive space)
                       assets/nous-girl-white.svg  (white positive space)
-                      straight from the Nous brand kit (Inkscape exports,
-                      5487^2 viewBox, one path each).
+                      5487^2 viewBox, one path each. In this fork they hold
+                      the NousAI mark (an N with the ✦ spark); the file and
+                      target names keep upstream's spelling so merges stay
+                      cheap.
 
   Backgrounds (per platform surface, light/dark):
                       assets/backgrounds/squircle-light.svg   white rounded
@@ -36,10 +38,10 @@ and a seven-character SHA badge. The girl and tile geometry do not change.
 Only apps/desktop outputs use this identity. Website, bootstrap, dashboard,
 and the shared master SVGs retain the default brand.
 
-The girl's position and uniform scale are registered to the reference artwork.
-She is clipped only to the outer rounded silhouette. Only nodes near her bottom
-edge are dragged down (past the edge, or to the ring when BORDER_ENABLED); the
-fitted face and hair stay fixed. Standalone wordmarks remain centered.
+The mark is centered on the plate at MARK_FRACTION of its side and clipped
+only to the outer rounded silhouette. Upstream's portrait instead bled off the
+bottom edge, its lowest nodes dragged down (EDGE_BLEED); the mark sits clear of
+every edge. Standalone wordmarks remain centered.
 
 GENERATED OUTPUTS ARE COMMITTED. Regular builds and installs consume them and
 never render; flavored release bundles (canary/commit) render to a product dir.
@@ -128,20 +130,28 @@ BORDER_FRACTION = 0.0407747197
 # flat plate + girl read better beside macOS 26's own icons. The ring code
 # stays so it can be turned back on in one place.
 BORDER_ENABLED = False
-# Without a ring the girl's lowest nodes are dragged past the tile edge (in
-# 1024ths of the tile) so the outline crops her instead of leaving a gap.
+# Upstream's portrait bled off the plate: its lowest nodes were dragged past the
+# tile edge (in 1024ths of the tile) so the outline cropped it. The NousAI mark
+# is centered and clear of every edge, so nothing is dragged.
+EDGE_BLEED = False
 EDGE_OVERSHOOT = 48 / 1024
 
-# Portrait boxes fitted to the reference at equal visible tile width, with
-# uniform scaling about the tile center followed by an up-left translation.
-# Keep their y coordinate: bottom anchoring would undo the registration.
+# The mark's height as a fraction of the plate side; its box is centered on the
+# plate (the full-bleed squircle, or the 824 plate on Apple's grid).
+MARK_FRACTION = 0.56
+
+
+def _centered_box(origin: float, side: float) -> tuple[float, float, float, float]:
+    size = side * MARK_FRACTION
+    offset = origin + (side - size) / 2
+    return (offset, offset, size, size)
+
+
 GIRL_BOXES = {
-    "squircle-light.svg": (72.149433, 104.703674, 872.767801, 872.767801),
-    "squircle-dark.svg": (72.149433, 104.703674, 872.767801, 872.767801),
-    # Mac: the girl scaled 1.06x about the plate center; the plate stays on the
-    # 824 grid, but a white tile with a ring reads small beside full-color peers.
-    "squircle-mac-light.svg": (140.19, 164.44, 744.68, 744.68),
-    "squircle-mac-dark.svg": (140.19, 164.44, 744.68, 744.68),
+    "squircle-light.svg": _centered_box(0.0, 1024.0),
+    "squircle-dark.svg": _centered_box(0.0, 1024.0),
+    "squircle-mac-light.svg": _centered_box(100.0, 824.0),
+    "squircle-mac-dark.svg": _centered_box(100.0, 824.0),
 }
 # The macOS 26 layered icon's canvas is the plate itself (the system maps it
 # onto the 824 grid), so the same mac portrait lands in plate coordinates.
@@ -252,7 +262,7 @@ TARGETS: list[tuple[str, str, object]] = [
     ("apps/desktop/assets/icon-dark.png", "png_dark", 1024),
     ("apps/desktop/assets/icon-dark.ico", "ico_dark", [16, 24, 32, 48, 64, 128, 256]),
     ("apps/desktop/assets/icon-dark.icns", "icns_dark", None),
-    # The DMG volume icon: our own drive artwork with the girl on its face,
+    # The DMG volume icon: our own drive artwork with the mark on its face,
     # one artwork for light and dark (volume icons have no appearance variants).
     ("apps/desktop/packaging/dmg-volume.icns", "icns_from_png", "assets/dmg-volume.png"),
     ("apps/desktop/assets/icon.icon/icon.json", "icon_manifest", None),
@@ -465,10 +475,11 @@ def portrait_layer(art: IconArt, girl: str, bg: str, join_bottom: float) -> ET.E
     _, y, portrait_width, portrait_height = box
     _, by, bw, bh = girl_bbox(art, girl)
     scale = min(portrait_width / bw, portrait_height / bh)
-    drag_bottom_nodes(
-        portrait[0], cutoff=by + bh * 0.97, band=bh * 0.02,
-        distance=max(0.0, join_bottom - (y + portrait_height)) / scale,
-    )
+    if EDGE_BLEED:
+        drag_bottom_nodes(
+            portrait[0], cutoff=by + bh * 0.97, band=bh * 0.02,
+            distance=max(0.0, join_bottom - (y + portrait_height)) / scale,
+        )
     # Keep the fitted viewBox fixed, but let edited nodes reach into the border.
     portrait.set("overflow", "visible")
     return portrait
@@ -834,7 +845,7 @@ def target_bytes(art: IconArt, kind: str, arg: object) -> bytes:
         frames = [img.resize((s, s), Image.LANCZOS) for s in (16, 32, 64, 128, 256, 512, 1024)]
         img.save(buf, format="ICNS", append_images=frames[1:])
     elif kind == "icns_from_png":
-        # Hand-made artwork (the DMG volume: girl on a drive) shipped as ICNS.
+        # Hand-made artwork (the DMG volume: the mark on a drive) shipped as ICNS.
         img = Image.open(art.source / arg).convert("RGBA")
         assert img.size == (1024, 1024), f"{arg} must be 1024x1024"
         frames = [img.resize((s, s), Image.LANCZOS) for s in (16, 32, 64, 128, 256, 512, 1024)]

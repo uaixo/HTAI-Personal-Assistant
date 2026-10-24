@@ -256,7 +256,7 @@ def manifest_fills(package):
     assert "border" not in layers, "the ring is disabled everywhere"
     # A fixed "image-name" makes actool ignore the per-appearance images, so
     # the art layer picks its image through specializations only, with a dark
-    # one (else dark mode shows the black girl on the dark fill). Clear and
+    # one (else dark mode shows the black mark on the dark fill). Clear and
     # Tinted come from the single mono layer, shown only under "tinted" while
     # the art layer hides there.
     art, mono = layers["art"], layers["mono"]
@@ -272,8 +272,8 @@ def manifest_fills(package):
 
 
 def test_layered_macos_icon_mono_layer_and_flavor_stays_in_the_fill(generate, monkeypatch):
-    """macOS 26 masks the layers itself. The girl is dragged past the plate edge
-    so the mask crops her (no gap below), the mono layer is one image of two
+    """macOS 26 masks the layers itself. The mark sits centred on the plate,
+    clear of its edges, so the mask never crops it, the mono layer is one image of two
     materials — near-black frosted ink and white — so nothing stacks, and build
     flavors recolour the fill in icon.json only; the layers never change."""
     module = load_generator(monkeypatch)
@@ -285,19 +285,21 @@ def test_layered_macos_icon_mono_layer_and_flavor_stays_in_the_fill(generate, mo
     for name in ("art-light.png", "art-dark.png"):
         layer = Image.open(stable / "Assets" / name).convert("RGBA")
         assert layer.size == (canvas, canvas)
-        bottom_row = layer.crop((0, canvas - 1, canvas, canvas)).getchannel("A").getbbox()
-        assert bottom_row is not None, f"{name}: the girl must reach the plate edge"
+        box = layer.getchannel("A").getbbox()
+        assert box is not None, f"{name}: the layer carries the mark"
+        assert min(box[0], box[1], canvas - box[2], canvas - box[3]) > canvas // 8, \
+            f"{name}: the mark must stay clear of the plate edges, got {box}"
     mono = Image.open(stable / "Assets" / "mono.png").convert("RGBA")
     ink_tone = round(module.MONO_INK[0] * 255)
     tones = {px[0] for px in mono.getdata() if px[3] > 127}
-    assert tones == {ink_tone, 255}, tones
+    assert 255 in tones and tones <= {ink_tone, 255}, tones  # ink only where the light art alone is drawn
     light_art = Image.open(stable / "Assets" / "art-light.png").convert("RGBA")
     dark_art = Image.open(stable / "Assets" / "art-dark.png").convert("RGBA")
     for x, y in ((canvas // 2, canvas // 2), (canvas // 3, canvas // 3), (2 * canvas // 3, canvas // 2)):
         px = mono.getpixel((x, y))
-        if dark_art.getpixel((x, y))[3] > 200:      # the girl's white parts stay white and opaque
+        if dark_art.getpixel((x, y))[3] > 200:      # the mark's white parts stay white and opaque
             assert px[:3] == (255, 255, 255) and px[3] == 255, (x, y, px)
-        elif light_art.getpixel((x, y))[3] > 200:   # her black parts become the frosted ink
+        elif light_art.getpixel((x, y))[3] > 200:   # its black parts become the frosted ink
             assert px[0] == ink_tone and abs(px[3] - round(module.MONO_INK[1] * 255)) <= 1, (x, y, px)
 
     for name in ("art-light.png", "art-dark.png", "mono.png"):
@@ -377,7 +379,7 @@ def test_msix_logos_resolve_every_slot_windows_draws(generate, monkeypatch):
         dark = Image.open(appx / f"Square44x44Logo.targetsize-{size}_altform-unplated.png").convert("RGBA")
         light = Image.open(appx / f"Square44x44Logo.targetsize-{size}_altform-lightunplated.png").convert("RGBA")
         assert plain.size == dark.size == light.size == (size, size)
-        edge = (max(1, size // 24), size // 2)  # on the plate, left of the girl
+        edge = (max(1, size // 24), size // 2)  # on the plate, left of the mark
         assert light.getpixel(edge)[:3] == plain.getpixel(edge)[:3] == light_plate == (255, 255, 255), size
         dark_plate = dark.getpixel(edge)
         assert dark_plate[3] == 255 and max(dark_plate[:3]) < 60, (size, dark_plate)

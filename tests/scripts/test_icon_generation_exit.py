@@ -135,14 +135,18 @@ def test_icon_portrait_sits_on_the_plain_tile_inside_the_outer_silhouette(monkey
     assert group.get("clip-path") == f"url(#{clip_path.attrib['id']})"
     assert portrait.get("overflow") == "visible"
     assert len(result.findall(".//svg:path", ns)) == 2  # one badge and one portrait
-    # The dragged bottom node lands below the tile: the clip, not a gap, ends her.
+    # With EDGE_BLEED the dragged bottom node lands below the tile (the clip, not
+    # a gap, ends the art); without it the mark ends at its box, inside the tile.
     _x, y, width, height, _ = geometry
     _, by, bw, bh = art.bboxes[girl]
     box_y, box_h = module.GIRL_BOXES[name][1], module.GIRL_BOXES[name][3]
     scale = min(module.GIRL_BOXES[name][2] / bw, box_h / bh)
     lowest_raw_y = max(float(v) for v in re.findall(r"[-+]?\d*\.?\d+", portrait[0].attrib["d"])[1::2])
     lowest_tile_y = box_y + box_h - bh * scale + (lowest_raw_y - by) * scale  # xMidYMax: bottom-aligned
-    assert lowest_tile_y == pytest.approx(y + height + width * module.EDGE_OVERSHOOT)
+    if module.EDGE_BLEED:
+        assert lowest_tile_y == pytest.approx(y + height + width * module.EDGE_OVERSHOOT)
+    else:
+        assert lowest_tile_y == pytest.approx(box_y + box_h) and lowest_tile_y < y + height
 
 
 def test_bottom_node_drag_preserves_upper_geometry_and_path_transform(monkeypatch):
