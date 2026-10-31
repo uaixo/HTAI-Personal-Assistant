@@ -4,6 +4,11 @@ title: "Installation"
 description: "Install NousAI with desktop bundles, source installers, Docker, Nix, or the Termux APT package"
 ---
 
+<head>
+  <title>Install NousAI: Official Guide | Nous Research</title>
+  <meta property="og:title" content="Install NousAI: Official Guide | Nous Research" />
+</head>
+
 # Installation
 
 Get NousAI up and running in under two minutes!
