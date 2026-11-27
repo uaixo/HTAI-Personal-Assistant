@@ -26,6 +26,7 @@ from hermes_cli._subprocess_compat import (
 )
 from hermes_cli.sqlite_safe_read import LiveConnectionError, offline_file_access
 from hermes_cli.sizefmt import format_bytes
+from hermes_platform.resolver.git import resolve_usable_git
 
 # ── Plugin context-reference provider API ────────────────────────────────────
 
@@ -474,6 +475,8 @@ def _run_quiet(cmd: list[str], cwd: Path, timeout: int, env: dict | None = None)
 
 
 def _expand_git_reference(ref: ContextReference, cwd: Path, args: list[str], label: str) -> Expansion:
+    if resolve_usable_git() is None:
+        return f"{ref.raw}: git is not available", None
     # The repository's named clean/smudge/process filters run during `diff` on a stat-dirty file:
     # their commands are emptied, and git is not spawned when they cannot be discovered.
     env = noninteractive_repo_git_env(cwd)
@@ -499,8 +502,19 @@ async def _fetch_url_content(url: str, *, url_fetcher: UrlFetcher = None) -> str
 
 async def _default_url_fetcher(url: str) -> str:
     from tools.web_tools import web_extract_tool
-    docs = json.loads(await web_extract_tool([url], format="markdown")).get("results", [])
-    return str(docs[0].get("content") or docs[0].get("raw_content") or "").strip() if docs else ""
+    payload = json.loads(await web_extract_tool([url], format="markdown"))
+    docs = payload.get("results", [])
+    if not docs:
+        if payload.get("error"):  # refused before any fetch (secret in the URL, no backend)
+            raise ValueError(payload["error"])
+        return ""
+    page = docs[0]
+    if page.get("blocked_by_policy"):
+        raise ValueError(page.get("error") or "Blocked by website policy")
+    content = str(page.get("content") or page.get("raw_content") or "").strip()
+    if not content and page.get("error"):  # SSRF refusal or a failed fetch
+        raise ValueError(page["error"])
+    return content
 
 
 def _is_under(path: Path, root: Path) -> bool:
