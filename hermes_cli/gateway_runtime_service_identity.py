@@ -183,6 +183,16 @@ def environment_pairs(value: str) -> dict[str, str]:
     return result
 
 
+def apply_unset_environment(env: dict[str, str], value: str) -> dict[str, str]:
+    """systemd's ``UnsetEnvironment=`` *value* (as ``systemctl show`` prints it), applied last to *env*: a
+    ``NAME`` drops the variable, a ``NAME=VALUE`` only that exact assignment (systemd.exec(5))."""
+    for item in shlex.split(value):
+        key, sep, val = item.partition("=")
+        if not sep or env.get(key) == val:
+            env.pop(key, None)
+    return env
+
+
 def verify_systemd(props: dict[str, str], manager_env: str, home: Path, *, system: bool) -> None:
     import pwd
 
@@ -212,10 +222,7 @@ def verify_systemd(props: dict[str, str], manager_env: str, home: Path, *, syste
     inherited = environment_pairs(manager_env)
     env = inherited if not system else {k: v for k, v in inherited.items() if k in props["PassEnvironment"].split()}
     env.update(environment_pairs(props["Environment"]))
-    for item in shlex.split(props["UnsetEnvironment"]):
-        key, sep, value = item.partition("=")
-        if not sep or env.get(key) == value:
-            env.pop(key, None)
+    apply_unset_environment(env, props["UnsetEnvironment"])
     configured = env.get("HERMES_HOME", "").strip()
     if not configured:
         configured = str(_absolute(env.get("HOME") or pwd.getpwuid(uid).pw_dir) / ".hermes")
@@ -356,14 +363,24 @@ def _masked_literals(line: str) -> str:
 # The launcher's lines after its env block; None slots hold values, which _vbs_identity checks one by one.
 _LAUNCHER_TAIL = ('existing_pp = env.Item("PYTHONPATH")', 'If Len(existing_pp) > 0 Then', None, 'Else', None,
                   'End If', None, None)
+# The waiting launcher (#146976) maps stop exits to 0 (the owned-exit line is shape-checked by
+# _vbs_identity) and quits with the gateway's code.
+_WAITING_LAUNCHER_TAIL = (*_LAUNCHER_TAIL, "If code = 78 Then code = 0", None, "WScript.Quit code")
 
 
-def _tail_mismatch(tail: list[str]) -> int | None:
+def launcher_pid_file(hermes_home: str) -> str:
+    """The ``gateway.pid`` the waiting launcher checks for an owned exit 1: ``gateway.status._get_pid_path``
+    of the home it sets (a Windows path; joined as text so both hosts render the same line)."""
+    return hermes_home.rstrip("\\/") + "\\gateway.pid"
+
+
+def _tail_mismatch(tail: list[str], waits: bool = False) -> int | None:
     """Offset of the first tail line that breaks the template's shape, or None when it holds."""
-    for offset, expected in enumerate(_LAUNCHER_TAIL):
+    shape = _WAITING_LAUNCHER_TAIL if waits else _LAUNCHER_TAIL
+    for offset, expected in enumerate(shape):
         if offset == len(tail) or expected not in (None, tail[offset]):
             return offset
-    return len(_LAUNCHER_TAIL) if len(tail) > len(_LAUNCHER_TAIL) else None
+    return len(shape) if len(tail) > len(shape) else None
 
 
 def _vbs_identity(script: str) -> tuple[str, list[str]]:
@@ -373,7 +390,10 @@ def _vbs_identity(script: str) -> tuple[str, list[str]]:
     lines = script.splitlines()
     if len(lines) < 16 or not lines[0].startswith("' "):
         _unverified("the launcher does not start with the installer's header")
-    fixed = ["Option Explicit", "Dim sh, env, existing_pp",
+    # Two installer generations: the waiting launcher (``Dim ... code``, #146976) and the one installs
+    # made before it still run (returns at once) until the next install or update re-renders it.
+    waits = lines[2:3] == ["Dim sh, env, existing_pp, code"]
+    fixed = ["Option Explicit", "Dim sh, env, existing_pp, code" if waits else "Dim sh, env, existing_pp",
              'Set sh = CreateObject("WScript.Shell")', 'Set env = sh.Environment("PROCESS")']
     if lines[1:5] != fixed:
         _unverified("the launcher's setup lines are not the installer's")
@@ -388,7 +408,7 @@ def _vbs_identity(script: str) -> tuple[str, list[str]]:
         env[match[1]] = match[2][1:-1].replace('""', '"')
         index += 1
     tail = lines[index:]
-    mismatch = _tail_mismatch(tail)
+    mismatch = _tail_mismatch(tail, waits)
     if mismatch is not None:
         index += mismatch
         line = _masked_literals(lines[index]) if index < len(lines) else "<end of file>"
@@ -397,9 +417,16 @@ def _vbs_identity(script: str) -> tuple[str, list[str]]:
         _unverified("the launcher's PYTHONPATH lines are not the installer's")
     if not re.fullmatch(r'sh.CurrentDirectory = ' + literal, tail[6]):
         _unverified("the launcher's working-directory line is not the installer's")
-    run = re.fullmatch(r'sh.Run (' + literal + r'), 0, False', tail[7])
+    run = re.fullmatch(r'code = sh\.Run\((' + literal + r'), 0, True\)' if waits else r'sh.Run (' + literal + r'), 0, False',
+                       tail[7])
     if not run or not env.get("HERMES_SUPERVISED_CHILD"):
         _unverified("the launcher has no Run line or does not set HERMES_SUPERVISED_CHILD")
+    if waits:
+        owned = re.fullmatch(r'If code = 1 And CreateObject\("Scripting\.FileSystemObject"\)\.FileExists\(('
+                             + literal + r')\) Then code = 0', tail[9])
+        pid_file = owned[1][1:-1].replace('""', '"') if owned else None
+        if pid_file is None or pid_file != launcher_pid_file(env.get("HERMES_HOME", "")):
+            _unverified("the launcher's exit mapping is not the installer's")
     command = run[1][1:-1].replace('""', '"')
     if "%" in command or "%" in env.get("HERMES_HOME", ""):
         _unverified("the launcher command or HERMES_HOME contains %")
@@ -408,7 +435,39 @@ def _vbs_identity(script: str) -> tuple[str, list[str]]:
     return env.get("HERMES_HOME", ""), argv
 
 
-def verify_windows_task(xml: str | bytes, home: Path, account: str, sid: str) -> None:
+class LogonOnlyTask(Exception):
+    """The task is the one installers before the wscript launcher registered for this home: a logon
+    trigger whose single action is the installer's own ``.cmd`` wrapper. It starts the gateway at
+    logon and nothing else, so it is neither run nor a reason to refuse this home."""
+
+
+def _is_own_cmd_wrapper(command: str, arguments: str, home: Path, task_name: str) -> bool:
+    """Whether a task action is exactly ``<home>/gateway-service/<task>.cmd`` with no arguments, the
+    action ``schtasks /Create /TR <wrapper>`` registered before the task ran wscript.exe."""
+    from hermes_cli.gateway_windows import _sanitize_filename
+    value = command.strip()
+    if len(value) >= 2 and value[0] == value[-1] == '"':  # /TR quoted a wrapper path with spaces
+        value = value[1:-1]
+    if arguments.strip() or not Path(value).is_absolute():
+        return False
+    wrapper = home.resolve() / "gateway-service" / f"{_sanitize_filename(task_name)}.cmd"
+    # The file name as registered, in the folder this home resolves to: the wrapper need not exist.
+    return (os.path.normcase(Path(value).name) == os.path.normcase(wrapper.name)
+            and os.path.normcase(str(Path(value).parent.resolve())) == os.path.normcase(str(wrapper.parent)))
+
+
+def _starts_at_logon_only(task, ns: dict[str, str]) -> bool:
+    """One plain logon trigger and no restart policy: Task Scheduler starts the action at logon, once."""
+    triggers = task.find("t:Triggers", ns)
+    return (triggers is not None and len(triggers) == 1 and triggers[0].tag == '{' + ns['t'] + '}LogonTrigger'
+            and triggers[0].find("t:Repetition", ns) is None
+            and task.find("t:Settings/t:RestartOnFailure", ns) is None)
+
+
+def verify_windows_task(xml: str | bytes, home: Path, account: str, sid: str, *,
+                        task_name: str | None = None) -> None:
+    """``task_name``: the task queried. With it, this home's pre-wscript registration raises
+    ``LogonOnlyTask`` once its principal and enabled state have passed, instead of being refused."""
     import xml.etree.ElementTree as ET
 
     try:
@@ -435,6 +494,9 @@ def verify_windows_task(xml: str | bytes, home: Path, account: str, sid: str) ->
     if task.findtext("t:Settings/t:Enabled", "true", ns) != "true":
         raise ValueError("service_disabled")
     action = actions[0]
+    if task_name and action.tag == '{' + ns['t'] + '}Exec' and _starts_at_logon_only(task, ns) and _is_own_cmd_wrapper(
+            action.findtext('t:Command', '', ns), action.findtext('t:Arguments', '', ns), home, task_name):
+        raise LogonOnlyTask
     if action.tag != '{' + ns['t'] + '}Exec' or action.findtext('t:Command', '', ns).lower() not in {"wscript.exe", r"c:\windows\system32\wscript.exe"}:
         _unverified(f"the task runs {action.findtext('t:Command', '', ns) or action.tag!r}, not wscript.exe")
     args = action.findtext("t:Arguments", "", ns)
